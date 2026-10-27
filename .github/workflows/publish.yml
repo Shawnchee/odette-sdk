@@ -3,7 +3,7 @@
 # Runs when a GitHub release is published. The `npm-publish` environment must
 # have required reviewers set in repo settings: that is the manual approval.
 # Needs the NPM_TOKEN secret (an npm automation token for the thetanuts-finance org).
-# --provenance needs a PUBLIC repository; keep the repo private and it fails.
+# --provenance needs a PUBLIC repository (it is public).
 name: Publish Packages
 
 on:
@@ -59,14 +59,29 @@ jobs:
         run: node scripts/smoke-install.mjs
 
       # SDK first: the CLI depends on this exact SDK version.
+      # Each step skips a version that is already on npm (a version can never be
+      # published twice), so a failed run can be re-run: if the SDK went out and
+      # the CLI failed, the re-run publishes only the CLI.
       - name: Publish SDK
-        run: npm publish --provenance --access public
         working-directory: packages/sdk
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          NAME=$(node -p "require('./package.json').name"); VERSION=$(node -p "require('./package.json').version")
+          if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+            echo "$NAME@$VERSION is already on npm; skipping."
+          else
+            npm publish --provenance --access public
+          fi
 
       - name: Publish CLI
-        run: npm publish --provenance --access public
         working-directory: packages/cli
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          NAME=$(node -p "require('./package.json').name"); VERSION=$(node -p "require('./package.json').version")
+          if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+            echo "$NAME@$VERSION is already on npm; skipping."
+          else
+            npm publish --provenance --access public
+          fi
