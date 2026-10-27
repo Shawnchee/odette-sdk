@@ -61,6 +61,7 @@ odette orders --underlying ETH --type PUT
 ```
 
 Each row is one option: its strike price, the expiry date and time, and the price of one contract.
+`--type` can be `PUT`, `CALL` or `RANGER`.
 
 **2. Check the trade.** Pick a strike and expiry from the list. `--collateral` is how
 much USDC you want to spend.
@@ -87,6 +88,16 @@ Prices update about once a minute. If the price moves while you're deciding, `od
 shows the new price and asks you again.
 
 Want to see the transaction without sending it? Add `--dry-run`.
+
+**Buying a RANGER.** A RANGER pays out if the price ends inside a range. It has
+four strikes, so use `--type RANGER` with `--strikes`:
+
+```sh
+odette orders --underlying BTC --type RANGER
+odette preview --underlying BTC --type RANGER --strikes 78500,79000,80000,80500 --expiry 1793174400 --collateral 5
+```
+
+`preview` shows what you pay (`premium`) and the most you can be paid at expiry (`maxPayout`).
 
 ## Useful flags
 
@@ -131,6 +142,7 @@ The amount you pass is the USDC you want to spend, not a number of contracts.
 ## Good to know
 
 - **Base only** (chain 8453).
+- **Found a security problem?** Don't open a public issue. See `SECURITY.md`.
 - **Every trade is tagged with Odette's referrer**, `0x94D784e81A5c8cA6E19629C73217b61a256Ea1c7`.
   You can't change it in these tools. The contract itself does not enforce the tag.
 - Orders and contracts come from Thetanuts Finance. Odette is the app on top.
