@@ -1,6 +1,8 @@
 // Adapted from thetanuts-sdk src/utils/decimals.ts at 9e72aef1ab5c008ccc92352fa5048bd08c452ede.
 // MIT License, Copyright (c) 2026 Thetanuts Finance.
-// Trimmed to toBigInt and fromBigInt (and their helper). Code unchanged.
+// Trimmed to toBigInt and fromBigInt (and their helper). toBigInt now rejects
+// malformed input ("1.2.3", "25.0oops") instead of truncating it; upstream
+// accepted both.
 
 function toFixedPointString(value: number): string {
   if (Number.isNaN(value) || !Number.isFinite(value)) {
@@ -60,13 +62,15 @@ export function toBigInt(value: number | string, decimals: number): bigint {
     str = str.slice(1);
   }
 
-  // Split into whole and fraction
-  const [whole = '0', fraction = ''] = str.split('.');
-
-  // Validate whole part is numeric
-  if (!/^\d+$/.test(whole)) {
+  // Validate the WHOLE input before splitting: digits, optionally one '.'
+  // and more digits. Upstream checked only the whole part, so "1.2.3" read
+  // as 1.2 and "25.000000oops" as 25.
+  if (!/^\d+(\.\d*)?$/.test(str)) {
     throw new Error(`Invalid numeric value: ${negative ? '-' : ''}${str}`);
   }
+
+  // Split into whole and fraction
+  const [whole = '0', fraction = ''] = str.split('.');
 
   const paddedFraction = fraction.padEnd(decimals, '0').slice(0, decimals);
   const result = BigInt(whole + paddedFraction);
