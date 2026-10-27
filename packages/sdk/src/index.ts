@@ -49,6 +49,19 @@ export {
   type RejectReason,
 } from './whitelist.js';
 export {
+  collateralPerContract,
+  sizeStep,
+  maxContracts,
+  minContracts,
+  MIN_PREMIUM_USDC,
+  quantum,
+  collateralForContracts,
+  premiumForContracts,
+  contractsForUsdc,
+  checkSize,
+  roundToStep,
+} from './sizing.js';
+export {
   parseFeed,
   fetchFeed,
   fetchOrders,
