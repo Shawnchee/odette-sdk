@@ -1,7 +1,8 @@
 // Adapted from thetanuts-sdk cli/src/config.ts at 9e72aef1ab5c008ccc92352fa5048bd08c452ede.
 // MIT License, Copyright (c) 2026 Thetanuts Finance.
 // Changes: path ~/.config/odette; no referrer or rfqKeysDir fields; a config
-// that holds a `referrer` key is an error (exit 4), not ignored.
+// that holds a `referrer` key is an error (exit 4), not ignored. `--dry-run`
+// never writes or deletes the file (stopForDryRun).
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -19,6 +20,19 @@ export interface Config {
   chainId: number;
   rpcUrl: string;
   privateKey?: string;
+}
+
+/**
+ * `--dry-run` never writes or deletes the config file. Every command that
+ * changes it calls this first and returns when it gives true. Upstream checked
+ * dry-run only inside confirm(), which `--force` skips: `wallet create --force
+ * --dry-run` replaced the key and `config unset privateKey --dry-run` deleted it.
+ * Output goes to stderr so `-o json` stdout stays empty.
+ */
+export function stopForDryRun(dryRun: unknown, action: string, configPath: string): boolean {
+  if (!dryRun) return false;
+  process.stderr.write(`Dry-run: ${action} would change ${configPath}. Nothing was written.\n`);
+  return true;
 }
 
 /** Thrown for a config file the CLI must not use. Commands exit with `exitCode` (4). */

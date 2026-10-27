@@ -11,6 +11,7 @@ import {
   defaultConfigPath,
   loadConfig,
   saveConfig,
+  stopForDryRun,
   type Config,
 } from '../config.js';
 import { DEFAULT_CHAIN_ID, DEFAULT_RPC_URL } from '../defaults.js';
@@ -161,6 +162,7 @@ export function register(program: Command): void {
           );
           process.exit(2);
         }
+        if (stopForDryRun(opts.dryRun, `config set ${key}`, (opts.config as string | undefined) ?? defaultConfigPath())) return;
         // SECURITY: reject argv for privateKey. The shell records argv in
         // history (~/.zsh_history, ~/.bash_history), and the running process
         // is visible in `ps aux` for its lifetime. Either route is a key-leak
@@ -213,6 +215,7 @@ export function register(program: Command): void {
           process.exit(2);
         }
         const path = (opts.config as string | undefined) ?? defaultConfigPath();
+        if (stopForDryRun(opts.dryRun, `config unset ${key}`, path)) return;
         const cfg = loadConfig(path);
         if (!cfg) {
           process.stderr.write(`No config file at ${path}\n`);

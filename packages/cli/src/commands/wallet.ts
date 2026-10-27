@@ -2,7 +2,8 @@
 // MIT License, Copyright (c) 2026 Thetanuts Finance.
 // Changes: `transfer` dropped (not part of filling); `approve` grants USDC to
 // the r12 OptionBook only (no --spender, no other token); --for optionBook only;
-// `show` reports the fixed referrer; names; config errors exit 4.
+// `show` reports the fixed referrer; names; config errors exit 4. `--dry-run`
+// never writes or deletes the config (create, import, reset), even with --force.
 import fs from 'node:fs';
 import type { Command } from 'commander';
 import prompts from 'prompts';
@@ -16,6 +17,7 @@ import {
   defaultConfigPath,
   loadConfig,
   saveConfig,
+  stopForDryRun,
   type Config,
 } from '../config.js';
 import { DEFAULT_CHAIN_ID, DEFAULT_RPC_URL } from '../defaults.js';
@@ -340,6 +342,7 @@ export function register(program: Command): void {
       }
       try {
         const path = (opts.config as string | undefined) ?? defaultConfigPath();
+        if (stopForDryRun(opts.dryRun, 'wallet create', path)) return;
         const existing = loadConfig(path);
         if (existing?.privateKey && !local.force) {
           // Deliberately NOT passing `yes: opts.yes`. Overwriting destroys the
@@ -504,6 +507,7 @@ export function register(program: Command): void {
       const opts = getGlobalOpts(cmd);
       try {
         const path = (opts.config as string | undefined) ?? defaultConfigPath();
+        if (stopForDryRun(opts.dryRun, 'wallet import', path)) return;
         const existing = loadConfig(path);
         if (existing?.privateKey) {
           // Same rule as `wallet create`: `--yes` is not consent to destroy an
@@ -556,6 +560,7 @@ export function register(program: Command): void {
       const local = cmd.opts<{ force?: boolean }>();
       try {
         const path = (opts.config as string | undefined) ?? defaultConfigPath();
+        if (stopForDryRun(opts.dryRun, 'wallet reset', path)) return;
         if (!fs.existsSync(path)) {
           render({ deleted: false, reason: 'no config', path }, { output: opts.output, noColor: !opts.color });
           return;

@@ -1,13 +1,13 @@
 // Adapted from thetanuts-sdk cli/src/commands/setup.ts at 9e72aef1ab5c008ccc92352fa5048bd08c452ede.
 // MIT License, Copyright (c) 2026 Thetanuts Finance.
 // Changes: no referrer prompt (the Odette referrer is fixed and is shown in the
-// summary); names; config errors exit 4.
+// summary); names; config errors exit 4; `--dry-run` writes nothing.
 import fs from 'node:fs';
 import type { Command } from 'commander';
 import prompts from 'prompts';
 import { ethers } from 'ethers';
 import { ODETTE_REFERRER } from '@thetanuts-finance/odette-sdk';
-import { defaultConfigPath, loadConfig, saveConfig, type Config } from '../config.js';
+import { defaultConfigPath, loadConfig, saveConfig, stopForDryRun, type Config } from '../config.js';
 import { DEFAULT_CHAIN_ID, DEFAULT_RPC_URL } from '../defaults.js';
 import { getGlobalOpts } from '../options.js';
 import { getClient } from '../client.js';
@@ -84,6 +84,7 @@ export function register(program: Command): void {
     .action(async (_localOpts: unknown, cmd: Command) => {
       const opts = getGlobalOpts(cmd);
       try {
+        if (stopForDryRun(opts.dryRun, 'setup', (opts.config as string | undefined) ?? defaultConfigPath())) return;
         process.stdout.write('Odette CLI setup\n');
         process.stdout.write('----------------\n');
         process.stdout.write(`Referrer for every fill (fixed): ${ODETTE_REFERRER}\n`);
