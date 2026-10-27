@@ -91,4 +91,14 @@ check('fill without a key exits 4 (wallet error)', () => {
   assert.equal(r.code, 4, r.stderr);
 });
 
+check('fill --yes without --collateral is refused (exit 2): no unattended max-size buy', () => {
+  rmSync(sentFile, { force: true });
+  const r = runCli([...noCfg, '--yes', 'fill', ...PUT], { env: { ...funded, STUB_SENT_FILE: sentFile } });
+  assert.equal(r.code, 2, r.stderr);
+  assert.match(r.stderr, /--yes needs --collateral/);
+  assert.equal(sent(), null);
+  // --dry-run without --collateral still previews the max size.
+  assert.equal(runCli([...noCfg, '--dry-run', '-o', 'json', 'fill', ...PUT], { env: funded }).code, 0);
+});
+
 console.log(`# fill-flow: ${passed} passed`);

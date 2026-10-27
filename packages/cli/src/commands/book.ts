@@ -14,6 +14,7 @@
 // - --approve-amount takes exact|max|<n>; an amount below the premium is a
 //   usage error. With --collateral, the default approval is that budget.
 // - check accepts --direction buy only (the CLI never sells or closes).
+// - fill --yes requires --collateral (no unattended max-size buy).
 // - --type also takes RANGER and LINEAR_CALL; orders filters by product (a RANGER
 //   has isCall=true on chain but is not a call). JSON rows carry product and
 //   underlying. preview shows premium and maxPayout.
@@ -935,6 +936,16 @@ function registerWrites(grp: Command): void {
         approveAmount?: string;
       }>();
       try {
+        // Without --collateral, fill buys the order's maximum size. Never do
+        // that unattended: --yes must come with an explicit budget.
+        if (opts.yes && !opts.dryRun && (local.collateral === undefined || local.collateral === '')) {
+          const err = new Error(
+            '--yes needs --collateral <usdc>. Without it, fill buys the maximum size of the order. ' +
+              'Pass the USDC you want to spend, or drop --yes to confirm the size yourself.'
+          );
+          (err as Error & { exitCode?: number }).exitCode = 2;
+          throw err;
+        }
         if (!opts.dryRun && local.orderIndex !== undefined && local.orderIndex !== '') {
           const err = new Error(
             'Live book fills require the stable selector flags ' +
