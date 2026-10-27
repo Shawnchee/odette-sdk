@@ -47,6 +47,9 @@ export function findSameInstrument(
       r?.isCall ? '1' : '0',
       r?.priceFeed.toLowerCase(),
       r?.collateral.toLowerCase(),
+      // Part of the signed terms (option parameters and nonce), so a quote
+      // with different extra data is a different instrument.
+      (r?.extraOptionData ?? '0x').toLowerCase(),
     ].join(':');
   };
   const want = key(reference);

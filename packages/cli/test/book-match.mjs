@@ -218,4 +218,14 @@ assert.equal(unknownFeed.error.includes('SOL'), true);
 
 console.log('book matcher regression tests passed');
 
+// --- Odette: re-quote identity (findSameInstrument) -------------------------
+// Re-signed quotes of the same instrument match; a different extraOptionData
+// (part of the signed terms) does not.
+const { findSameInstrument } = await import('../src/bookOrderIdentity.ts');
+const quoteA = { ...vanilla, signature: '0xaa', order: { ...vanilla.order, price: 900_000_000n } };
+const quoteB = { ...vanilla, signature: '0xbb', order: { ...vanilla.order, price: 800_000_000n } };
+assert.equal(findSameInstrument([quoteA, quoteB], vanilla), quoteB, 'same instrument, cheapest re-quote');
+const otherExtra = { ...vanilla, rawApiData: { ...vanilla.rawApiData, extraOptionData: '0x01' } };
+assert.equal(findSameInstrument([otherExtra], vanilla), undefined, 'different extraOptionData is a different instrument');
+
 console.log('# book-match: all assertions passed');
