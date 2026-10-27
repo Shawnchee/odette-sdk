@@ -1,8 +1,8 @@
 // Adapted from thetanuts-sdk cli/src/options.ts at 9e72aef1ab5c008ccc92352fa5048bd08c452ede.
 // MIT License, Copyright (c) 2026 Thetanuts Finance.
 // Changes: --chain dropped (Base only); --referrer dropped (the Odette referrer is fixed);
-// env var and path names.
-import type { Command, OptionValues } from 'commander';
+// env var and path names. --output accepts only its listed formats.
+import { Option, type Command, type OptionValues } from 'commander';
 
 /**
  * Global option spec for the root `odette` command.
@@ -15,7 +15,7 @@ import type { Command, OptionValues } from 'commander';
  */
 export function addGlobalOptions(program: Command): void {
   program
-    .option('-o, --output <fmt>', 'output format (table|json|csv|yaml)', 'table')
+    .addOption(new Option('-o, --output <fmt>', 'output format').choices(['table', 'json', 'csv', 'yaml']).default('table'))
     .option('--dry-run', 'simulate without sending transactions', false)
     .option('--yes', 'skip interactive confirmation prompts', false)
     .option('--rpc-url <url>', 'override the RPC endpoint for the active chain')

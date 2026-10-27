@@ -99,4 +99,14 @@ check('wallet approve without --yes on a non-TTY exits 3', () => {
   assert.equal(r.code, 3, r.stderr);
 });
 
+check('-o bogus exits 2 and lists the allowed formats; -o json still exits 0', () => {
+  const bad = runCli([...noCfg, '-o', 'bogus', 'orders']);
+  assert.equal(bad.code, 2, bad.stderr);
+  assert.match(bad.stderr, /bogus/);
+  assert.match(bad.stderr, /table, json, csv, yaml/);
+  const ok = runCli([...noCfg, '-o', 'json', 'orders']);
+  assert.equal(ok.code, 0, ok.stderr);
+  assert.ok(Array.isArray(JSON.parse(ok.stdout)));
+});
+
 console.log(`# exit-codes: ${passed} passed`);
