@@ -1,0 +1,25 @@
+{
+  "name": "odette-sdk-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Odette SDK and CLI. Trade Odette orders on Base from code or a terminal.",
+  "license": "MIT",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build -w @thetanuts-finance/odette-sdk && npm run build -w @thetanuts-finance/odette-cli",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "node scripts/run-tests.mjs",
+    "drift": "node --conditions=odette-source --import tsx scripts/check-drift.mjs",
+    "odette": "npm run odette -w @thetanuts-finance/odette-cli --"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.2",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3"
+  }
+}

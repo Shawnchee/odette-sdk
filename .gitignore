@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.env
+.env.*
+*.key
+*.pem
+.DS_Store
+coverage/
+# local CLI wallet/config must never be committed
+config.json
+
+# copied into each package by scripts/copy-package-docs.mjs at pack time
+packages/*/LICENSE
+packages/*/NOTICE.md
+packages/*/README.md
