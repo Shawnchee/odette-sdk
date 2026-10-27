@@ -4,7 +4,7 @@
 // cli/tests/exitCodes.test.ts. Network is stubbed; nothing is sent.
 
 import assert from 'node:assert/strict';
-import { mkdirSync } from 'node:fs';
+import { chmodSync, mkdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { Interface, Wallet } from 'ethers';
 import { runCli, tempDir, writeConfig } from './helpers/run-cli.mjs';
@@ -134,5 +134,13 @@ check('RPC URL errors never print the URL path or query (API keys)', () => {
   }
 });
 
+check('saving a config does not chmod an existing directory', () => {
+  const d = tempDir();
+  chmodSync(d, 0o755);
+  const r = runCli(['--config', join(d, 'config.json'), 'wallet', 'create']);
+  assert.equal(r.code, 0, r.stderr);
+  assert.equal(statSync(d).mode & 0o777, 0o755);
+  assert.equal(statSync(join(d, 'config.json')).mode & 0o777, 0o600);
+});
 
 console.log(`# exit-codes: ${passed} passed`);

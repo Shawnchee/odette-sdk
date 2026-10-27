@@ -2,7 +2,8 @@
 // MIT License, Copyright (c) 2026 Thetanuts Finance.
 // Changes: path ~/.config/odette; no referrer or rfqKeysDir fields; a config
 // that holds a `referrer` key is an error (exit 4), not ignored. `--dry-run`
-// never writes or deletes the file (stopForDryRun).
+// never writes or deletes the file (stopForDryRun). saveConfig chmods the
+// directory only when it created it.
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -112,7 +113,10 @@ export function loadConfig(configPath?: string): Config | null {
 export function saveConfig(cfg: Config, configPath?: string): void {
   const p = configPath ?? defaultConfigPath();
   const dir = path.dirname(p);
-  if (!fs.existsSync(dir)) {
+  // Tighten the directory only when we create it: `--config ./config.json`
+  // must not chmod the user's current directory (upstream chmod'ed any parent).
+  const createdDir = !fs.existsSync(dir);
+  if (createdDir) {
     fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
   }
 
@@ -147,9 +151,11 @@ export function saveConfig(cfg: Config, configPath?: string): void {
     throw err;
   }
 
-  try {
-    fs.chmodSync(dir, 0o700);
-  } catch {
-    // ignore (Windows / unsupported FS)
+  if (createdDir) {
+    try {
+      fs.chmodSync(dir, 0o700);
+    } catch {
+      // ignore (Windows / unsupported FS)
+    }
   }
 }
