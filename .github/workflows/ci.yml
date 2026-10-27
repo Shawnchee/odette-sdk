@@ -1,0 +1,62 @@
+# Copyright (c) 2026 Thetanuts Finance. MIT License.
+# Pattern and pinned actions from thetanuts-sdk .github/workflows/ci.yml.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Typecheck, build, test (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: ['20', '22']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript check
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+
+      - name: Check build outputs exist
+        run: |
+          test -f packages/sdk/dist/index.js
+          test -f packages/sdk/dist/index.cjs
+          test -f packages/sdk/dist/index.d.ts
+          test -x packages/cli/dist/index.js
+
+      # Offline: feed and chain are stubbed. Judged by exit code.
+      - name: Tests
+        run: npm test
+
+      # Pack both tarballs, install them in a fresh project, run the bin,
+      # import ESM + CJS, typecheck a consumer. Never publishes.
+      - name: Install smoke test
+        run: node scripts/smoke-install.mjs
+
+  all-checks:
+    name: All Checks
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+      - name: All checks passed
+        run: echo "All checks passed!"

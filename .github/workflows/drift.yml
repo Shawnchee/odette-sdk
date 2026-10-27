@@ -1,0 +1,42 @@
+# Copyright (c) 2026 Thetanuts Finance. MIT License.
+# Weekly drift check: our copies vs thetanuts-sdk (GitHub main), Odette
+# production (odette.fi), and Base bytecode. Fails on any mismatch or on a
+# source that cannot be read. Read-only.
+name: Drift
+
+on:
+  schedule:
+    - cron: '0 3 * * 1' # Mondays 03:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  drift:
+    name: Drift check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Drift check
+        run: npm run drift
+        env:
+          ODETTE_RPC_URL: ${{ secrets.ODETTE_RPC_URL || 'https://mainnet.base.org' }}
+
+      # Read-only live test: real feed + eth_call on Base. Never signs.
+      - name: Live read-only test
+        run: node --conditions=odette-source --import tsx packages/sdk/test/dry-run-live.mjs
+        env:
+          ODETTE_LIVE: '1'
+          ODETTE_RPC_URL: ${{ secrets.ODETTE_RPC_URL || 'https://mainnet.base.org' }}

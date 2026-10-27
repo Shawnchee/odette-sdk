@@ -1,0 +1,72 @@
+# Copyright (c) 2026 Thetanuts Finance. MIT License.
+# Pattern and pinned actions from thetanuts-sdk .github/workflows/publish.yml.
+# Runs when a GitHub release is published. The `npm-publish` environment must
+# have required reviewers set in repo settings: that is the manual approval.
+# Needs the NPM_TOKEN secret (an npm automation token for the thetanuts-finance org).
+# --provenance needs a PUBLIC repository; keep the repo private and it fails.
+name: Publish Packages
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    environment: npm-publish
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+          scope: '@thetanuts-finance'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # The tag must equal both package versions (one version for both).
+      - name: Check release tag matches package versions
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          SDK=$(node -p "require('./packages/sdk/package.json').version")
+          CLI=$(node -p "require('./packages/cli/package.json').version")
+          DEP=$(node -p "require('./packages/cli/package.json').dependencies['@thetanuts-finance/odette-sdk']")
+          echo "tag=$TAG sdk=$SDK cli=$CLI cli->sdk=$DEP"
+          test "$TAG" = "$SDK" && test "$TAG" = "$CLI" && test "$DEP" = "$SDK"
+
+      - name: TypeScript check
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+
+      - name: Tests
+        run: npm test
+
+      - name: Drift check
+        run: npm run drift
+
+      - name: Install smoke test
+        run: node scripts/smoke-install.mjs
+
+      # SDK first: the CLI depends on this exact SDK version.
+      - name: Publish SDK
+        run: npm publish --provenance --access public
+        working-directory: packages/sdk
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish CLI
+        run: npm publish --provenance --access public
+        working-directory: packages/cli
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
