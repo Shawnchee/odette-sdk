@@ -14,6 +14,10 @@
 // - --approve-amount takes exact|max|<n>; an amount below the premium is a
 //   usage error. With --collateral, the default approval is that budget.
 // - check accepts --direction buy only (the CLI never sells or closes).
+// - --type also takes RANGER and LINEAR_CALL; orders filters by product (a RANGER
+//   has isCall=true on chain but is not a call). JSON rows carry product and
+//   underlying. preview shows premium and maxPayout.
+// - fill prints the tx hash at broadcast, before the receipt.
 import type { Command } from 'commander';
 import { Interface, MaxUint256 } from 'ethers';
 import {
@@ -279,6 +283,8 @@ function summarizeOrder(
   const strikes = order.rawApiData?.strikes ?? [];
   return {
     ...(index !== undefined ? { index } : {}),
+    product: order.product,
+    underlying: order.underlying,
     maker: order.order.maker,
     isCall: order.rawApiData?.isCall,
     isLong: order.rawApiData?.isLong,
@@ -374,6 +380,7 @@ function humanizePreview(
     collateralToken: string;
     pricePerContract: bigint;
     totalCollateral: bigint;
+    maxPayout: bigint;
     referrer: string;
     maker: string;
     expiry: bigint;
@@ -416,7 +423,10 @@ function humanizePreview(
     maxContracts: maxContractsHuman.toString(),
     strikes: formatStrikeUsd(strikesUsd),
     pricePerContract: formatUsd(pricePerContractHuman, 4),
-    totalCollateral: formatUsd(totalCollateralHuman),
+    // Table labels: what you pay, and the most you can be paid at expiry.
+    // (JSON keeps upstream's `totalCollateral` name for the premium.)
+    premium: formatUsd(totalCollateralHuman, 6),
+    maxPayout: formatUsd(Number(preview.maxPayout) / 10 ** collDec, 6),
     expiry: formatExpiry(expiry),
   };
 }
@@ -502,9 +512,18 @@ function resolveOrderBySelector(
   }
 
   const underlying = flags.underlying!.toUpperCase();
-  const type = flags.type!.toUpperCase();
+  const typeInput = flags.type!.toUpperCase();
+  // RANGER and LINEAR_CALL orders carry isCall=true, so they match as CALL;
+  // the strike count then tells them apart (RANGER has 4).
+  const isRanger = typeInput === 'RANGER';
+  const type = isRanger || typeInput === 'LINEAR_CALL' ? 'CALL' : typeInput;
   if (type !== 'PUT' && type !== 'CALL') {
-    const err = new Error(`Invalid --type "${flags.type}". Expected PUT or CALL.`);
+    const err = new Error(`Invalid --type "${flags.type}". Expected PUT, CALL or RANGER.`);
+    (err as { exitCode?: number }).exitCode = 2;
+    throw err;
+  }
+  if (isRanger && (!flags.strikes || flags.strikes.split(',').length !== 4)) {
+    const err = new Error('--type RANGER needs --strikes with 4 values, e.g. --strikes 78500,79000,80000,80500.');
     (err as { exitCode?: number }).exitCode = 2;
     throw err;
   }
@@ -714,7 +733,7 @@ function registerReads(grp: Command): void {
     .command('orders')
     .description('List Odette orders you can buy now (PUT, LINEAR_CALL, RANGER on USDC)')
     .option('--underlying <asset>', 'filter by underlying (e.g. ETH, BTC)')
-    .option('--type <type>', 'filter by option type (CALL|PUT)')
+    .option('--type <type>', 'filter by product: PUT, CALL or RANGER')
     .option('--min-expiry <ts>', 'filter by minimum expiry timestamp (unix seconds)')
     .action(async (_local: unknown, cmd: Command) => {
       const opts = getGlobalOpts(cmd);
@@ -734,13 +753,20 @@ function registerReads(grp: Command): void {
           (order, index) => ({ order, index })
         );
 
-        let wantType: 'CALL' | 'PUT' | null = null;
+        // Odette products: PUT, CALL (= LINEAR_CALL) and RANGER. A RANGER
+        // carries isCall=true on chain but is not a call, so filter by product.
+        let wantProduct: 'PUT' | 'LINEAR_CALL' | 'RANGER' | null = null;
         if (local.type) {
           const upper = local.type.toUpperCase();
-          if (upper !== 'CALL' && upper !== 'PUT') {
-            throw new Error(`Invalid --type "${local.type}". Expected CALL or PUT.`);
+          const map: Record<string, 'PUT' | 'LINEAR_CALL' | 'RANGER'> = {
+            PUT: 'PUT', CALL: 'LINEAR_CALL', LINEAR_CALL: 'LINEAR_CALL', RANGER: 'RANGER',
+          };
+          if (!map[upper]) {
+            const err = new Error(`Invalid --type "${local.type}". Expected PUT, CALL or RANGER.`);
+            (err as { exitCode?: number }).exitCode = 2;
+            throw err;
           }
-          wantType = upper;
+          wantProduct = map[upper];
         }
         const minExpiry = local.minExpiry
           ? Number.parseInt(local.minExpiry, 10)
@@ -762,12 +788,7 @@ function registerReads(grp: Command): void {
         }
 
         const filtered = indexedEligible.filter(({ order: o }) => {
-          if (wantType !== null) {
-            const isCall = o.rawApiData?.isCall;
-            if (isCall === undefined) return false;
-            if (wantType === 'CALL' && !isCall) return false;
-            if (wantType === 'PUT' && isCall) return false;
-          }
+          if (wantProduct !== null && o.product !== wantProduct) return false;
           if (wantPriceFeed !== null) {
             const pf = o.rawApiData?.priceFeed?.toLowerCase();
             if (pf !== wantPriceFeed) return false;
@@ -798,7 +819,7 @@ function registerReads(grp: Command): void {
     .description('Preview a fill against an order without sending a transaction')
     .option('--order-index <n>', 'index into the live orders array (legacy — prefer the selector flags below)')
     .option('--underlying <asset>', 'ETH or BTC (use with --type/--strike/--expiry instead of --order-index)')
-    .option('--type <type>', 'PUT or CALL (use with --underlying/--strike/--expiry)')
+    .option('--type <type>', 'PUT, CALL or RANGER (use with --underlying/--strike(s)/--expiry)')
     .option('--strike <usd>', 'single strike in USD (vanilla)')
     .option('--strikes <csv>', 'comma-separated strikes in USD (multi-leg)')
     .option('--expiry <ts>', 'unix expiry seconds')
@@ -850,7 +871,7 @@ function registerReads(grp: Command): void {
     .description('Compute the maximum fillable contracts for an order')
     .option('--order-index <n>', 'index into the live orders array (legacy)')
     .option('--underlying <asset>', 'ETH or BTC')
-    .option('--type <type>', 'PUT or CALL')
+    .option('--type <type>', 'PUT, CALL or RANGER')
     .option('--strike <usd>', 'single strike in USD')
     .option('--strikes <csv>', 'comma-separated strikes in USD')
     .option('--expiry <ts>', 'unix expiry seconds')
@@ -890,7 +911,7 @@ function registerWrites(grp: Command): void {
     .description('Fill an order (preview → allowance check → confirm → send)')
     .option('--order-index <n>', 'index into the live orders array (legacy — prefer the selector flags below)')
     .option('--underlying <asset>', 'ETH or BTC (use with --type/--strike/--expiry instead of --order-index)')
-    .option('--type <type>', 'PUT or CALL')
+    .option('--type <type>', 'PUT, CALL or RANGER')
     .option('--strike <usd>', 'single strike in USD (vanilla)')
     .option('--strikes <csv>', 'comma-separated strikes in USD (multi-leg)')
     .option('--expiry <ts>', 'unix expiry seconds')

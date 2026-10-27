@@ -18,6 +18,7 @@ import {
   contractsForUsdc,
   checkSize,
   roundToStep,
+  maxPayoutForContracts,
 } from '../src/index.ts';
 
 let passed = 0;
@@ -189,6 +190,26 @@ check('roundToStep matches validateNumContractsForContract', () => {
   assert.equal(roundToStep(45n, 20n), 60n); // round up
   assert.equal(roundToStep(45n, 20n, 50n), 40n); // up passes max -> down
   assert.equal(roundToStep(15n, 20n, 10n), 0n); // down reaches 0 -> 0
+});
+
+check('max payout: PUT pays at most the strike per contract', () => {
+  // 2 contracts of a $1.95 PUT: at most 2 x 1.95 = 3.90 USDC
+  assert.equal(maxPayoutForContracts(order('PUT', [195_000000n]), 2_000000n), 3_900000n);
+});
+
+check('max payout: symmetric RANGER pays k per contract, not the 2k the maker posts', () => {
+  // 78500/79000/80000/80500: k = 500. 2 contracts pay at most 1000 USDC; the maker posts 2000.
+  const o = order('RANGER', [7_850_000_000000n, 7_900_000_000000n, 8_000_000_000000n, 8_050_000_000000n]);
+  assert.equal(maxPayoutForContracts(o, 2_000000n), 1_000_000000n);
+  assert.equal(collateralForContracts(o, 2_000000n), 2_000_000000n);
+});
+
+check('max payout: asymmetric RANGER peaks just above the third strike', () => {
+  // 100/110/120/140: k = 10, but s3 - s2 = 20. Just above 120, call = 10 and put = 140 - price,
+  // so payout = 140 - price, which is 20 - 1e-8 USD at price 120.00000001.
+  // 1 contract (1_000000) -> (2_000_000_000 - 1) * 1_000000 / 1e8 = 19_999_999 (19.999999 USDC).
+  const o = order('RANGER', [100_00000000n, 110_00000000n, 120_00000000n, 140_00000000n]);
+  assert.equal(maxPayoutForContracts(o, 1_000000n), 19_999999n);
 });
 
 // ---- second probe: real orders from the recorded feed ----

@@ -118,6 +118,29 @@ export function collateralForContracts(order: OdetteOrder, numContracts: bigint)
   return (numContracts * collateralPerContract(order)) / PRICE_SCALE;
 }
 
+/**
+ * Most USDC (6 dp) the buyer can be paid at expiry for `numContracts`.
+ * PUT, LINEAR_CALL and spreads pay at most what the maker posts. RANGER pays
+ * (call leg + put leg - k), RangerOption.simulatePayout. That is piecewise
+ * linear in price with one jump: just above strikes[2] the put leg goes from k
+ * to strikes[3] - price. So the maximum is at a strike or one unit above
+ * strikes[2] (they differ only when strikes[3] - strikes[2] > k).
+ */
+export function maxPayoutForContracts(order: OdetteOrder, numContracts: bigint): bigint {
+  if (order.product !== 'RANGER') return collateralForContracts(order, numContracts);
+  const [s0, s1, s2, s3] = strikesOf(order) as [bigint, bigint, bigint, bigint];
+  const k = s1 - s0;
+  let best = 0n;
+  for (const price of [s0, s1, s2, s2 + 1n, s3]) {
+    const call = price <= s0 ? 0n : price >= s1 ? k : price - s0;
+    const put = price >= s3 ? 0n : price <= s2 ? k : s3 - price;
+    const total = call + put;
+    const perContract = total > k ? total - k : 0n;
+    if (perContract > best) best = perContract;
+  }
+  return (numContracts * best) / PRICE_SCALE;
+}
+
 /** USDC (6 dp) premium the taker pays for `numContracts`. OptionBook: price * numContracts / 1e8. */
 export function premiumForContracts(order: OdetteOrder, numContracts: bigint): bigint {
   return (order.order.price * numContracts) / PRICE_SCALE;

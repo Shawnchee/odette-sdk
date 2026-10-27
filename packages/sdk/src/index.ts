@@ -62,6 +62,7 @@ export {
   MIN_PREMIUM_USDC,
   quantum,
   collateralForContracts,
+  maxPayoutForContracts,
   premiumForContracts,
   contractsForUsdc,
   checkSize,

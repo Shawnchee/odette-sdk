@@ -26,9 +26,11 @@ import { createError, mapContractError } from '../errors.js';
 import {
   checkSize,
   collateralForContracts,
+  maxPayoutForContracts,
   contractsForUsdc,
   maxContracts,
   minContracts,
+  MIN_PREMIUM_USDC,
   premiumForContracts,
   sizeStep,
 } from '../sizing.js';
@@ -73,6 +75,8 @@ export interface FillPreview {
   totalCollateral: bigint;
   /** Collateral the maker posts for numContracts, USDC 6 dp. */
   makerCollateral: bigint;
+  /** Most the buyer can be paid at expiry for numContracts, USDC 6 dp. */
+  maxPayout: bigint;
   /** Always ODETTE_REFERRER. */
   referrer: string;
   maker: string;
@@ -287,6 +291,7 @@ export class OptionBookModule {
       pricePerContract: order.order.price,
       totalCollateral: premiumForContracts(order, numContracts),
       makerCollateral: collateralForContracts(order, numContracts),
+      maxPayout: maxPayoutForContracts(order, numContracts),
       referrer: ODETTE_REFERRER,
       maker: order.order.maker,
       expiry: order.order.expiry,
@@ -398,7 +403,7 @@ export class OptionBookModule {
     add(8, 'size', size.ok,
       size.ok ? `${fromBigInt(preview.numContracts, USDC.decimals)} contracts (step ${fromBigInt(preview.step, USDC.decimals)})` : size.message);
     if (!size.ok) return results;
-    const premiumOk = preview.totalCollateral >= 500_000n;
+    const premiumOk = preview.totalCollateral >= MIN_PREMIUM_USDC;
     add(9, 'min-premium', premiumOk, premiumOk ? usdc(preview.totalCollateral) : 'Premium is below the 0.50 USDC minimum.');
 
     // 10. Maker can fund this size, and the order nonce has room for it.
