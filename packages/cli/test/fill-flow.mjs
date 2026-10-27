@@ -101,4 +101,27 @@ check('fill --yes without --collateral is refused (exit 2): no unattended max-si
   assert.equal(runCli([...noCfg, '--dry-run', '-o', 'json', 'fill', ...PUT], { env: funded }).code, 0);
 });
 
+check('malformed --strike/--strikes/--expiry exit 2 and nothing is signed', () => {
+  const bad = [
+    ['--underlying', 'ETH', '--type', 'PUT', '--strike', '2180oops', '--expiry', '1793174400'],
+    ['--underlying', 'ETH', '--type', 'PUT', '--strike', '2180', '--expiry', '1793174400oops'],
+    ['--underlying', 'ETH', '--type', 'PUT', '--strike', '2180x0', '--expiry', '1793174400'],
+    ['--underlying', 'ETH', '--type', 'PUT', '--strike', '-2180', '--expiry', '1793174400'],
+    ['--underlying', 'BTC', '--type', 'RANGER', '--strikes', '78500,79000x,80000,80500', '--expiry', '1793174400'],
+  ];
+  for (const sel of bad) {
+    rmSync(sentFile, { force: true });
+    const r = runCli([...noCfg, '--yes', 'fill', ...sel, '--collateral', '5'], { env: { ...funded, STUB_SENT_FILE: sentFile } });
+    assert.equal(r.code, 2, `${sel.join(' ')}: ${r.stderr}`);
+    assert.equal(sent(), null, `${sel.join(' ')}: signed a transaction`);
+  }
+});
+
+check('check and orders refuse malformed numbers (exit 2)', () => {
+  assert.equal(runCli([...noCfg, 'check', '--underlying', 'ETH', '--type', 'PUT', '--strike', '2180oops', '--expiry', '1793174400', '--direction', 'buy']).code, 2);
+  assert.equal(runCli([...noCfg, 'check', '--underlying', 'ETH', '--type', 'PUT', '--strike', '2180', '--expiry', '1793174400', '--direction', 'buy', '--size', '-1']).code, 2);
+  assert.equal(runCli([...noCfg, 'orders', '--min-expiry', '12x']).code, 2);
+  assert.equal(runCli([...noCfg, 'check', '--underlying', 'ETH', '--type', 'PUT', '--strike', '2180', '--expiry', '1793174400', '--direction', 'buy']).code, 0);
+});
+
 console.log(`# fill-flow: ${passed} passed`);

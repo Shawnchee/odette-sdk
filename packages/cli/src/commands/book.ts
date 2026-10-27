@@ -14,6 +14,8 @@
 // - --approve-amount takes exact|max|<n>; an amount below the premium is a
 //   usage error. With --collateral, the default approval is that budget.
 // - check accepts --direction buy only (the CLI never sells or closes).
+// - --strike(s), --expiry, --min-expiry, --order-index and --size must be whole
+//   numbers (upstream parseFloat/parseInt accepted trailing junk).
 // - fill --yes requires --collateral (no unattended max-size buy); an empty or
 //   malformed --collateral is a usage error, never "no budget".
 // - --type also takes RANGER and LINEAR_CALL; orders filters by product (a RANGER
@@ -209,6 +211,21 @@ function tickerForOrder(
   );
 }
 
+/**
+ * Parse a flag value strictly: the whole string must be a number. parseFloat
+ * and parseInt ignore trailing junk, so `--strike 2180x0` used to read as 2180
+ * and `--expiry 1793174400oops` as a valid expiry. Returns NaN when invalid.
+ */
+function strictNumber(value: string | undefined): number {
+  const s = (value ?? '').trim();
+  return /^\d+(\.\d+)?$/.test(s) ? Number(s) : Number.NaN;
+}
+
+function strictInt(value: string | undefined): number {
+  const s = (value ?? '').trim();
+  return /^\d+$/.test(s) ? Number(s) : Number.NaN;
+}
+
 function resolveOrderByIndex(
   orders: OrderWithSignature[],
   rawIndex: string | number | undefined
@@ -222,7 +239,7 @@ function resolveOrderByIndex(
         'Did the value resolve to empty (e.g. an unset shell variable like $INDEX)?'
     );
   }
-  const idx = typeof rawIndex === 'number' ? rawIndex : Number.parseInt(String(rawIndex), 10);
+  const idx = typeof rawIndex === 'number' ? rawIndex : strictInt(String(rawIndex));
   if (Number.isNaN(idx) || idx < 0) {
     throw new Error(`Invalid --order-index: ${rawIndex}`);
   }
@@ -537,8 +554,8 @@ function resolveOrderBySelector(
     throw err;
   }
   const wantStrikesUsd: number[] = flags.strikes
-    ? flags.strikes.split(',').map((s) => Number.parseFloat(s.trim()))
-    : [Number.parseFloat(flags.strike!)];
+    ? flags.strikes.split(',').map((s) => strictNumber(s))
+    : [strictNumber(flags.strike)];
   if (wantStrikesUsd.some((n) => Number.isNaN(n) || n <= 0)) {
     const err = new Error(
       `Invalid strikes: ${flags.strikes ?? flags.strike}. Expected positive USD numbers.`
@@ -547,7 +564,7 @@ function resolveOrderBySelector(
     throw err;
   }
   const wantStrikesRaw = wantStrikesUsd.map((s) => BigInt(Math.round(s * 1e8)));
-  const wantExpiry = Number.parseInt(flags.expiry!, 10);
+  const wantExpiry = strictInt(flags.expiry);
   if (Number.isNaN(wantExpiry) || wantExpiry <= 0) {
     const err = new Error(`Invalid --expiry "${flags.expiry}". Expected unix seconds.`);
     (err as { exitCode?: number }).exitCode = 2;
@@ -668,9 +685,9 @@ function registerCheck(grp: Command): void {
       const underlying = local.underlying.toUpperCase();
       const type = local.type.toUpperCase();
       const direction = local.direction.toLowerCase();
-      const strike = parseFloat(local.strike);
-      const expiry = parseInt(local.expiry, 10);
-      const size = local.size !== undefined ? parseFloat(local.size) : undefined;
+      const strike = strictNumber(local.strike);
+      const expiry = strictInt(local.expiry);
+      const size = local.size !== undefined ? strictNumber(local.size) : undefined;
 
       // Underlying is validated against chain config after the client exists —
       // the old hardcoded ETH|BTC gate made every SOL/DOGE/XRP/BNB/AVAX order
@@ -778,8 +795,13 @@ function registerReads(grp: Command): void {
           wantProduct = map[upper];
         }
         const minExpiry = local.minExpiry
-          ? Number.parseInt(local.minExpiry, 10)
+          ? strictInt(local.minExpiry)
           : null;
+        if (minExpiry !== null && Number.isNaN(minExpiry)) {
+          const err = new Error(`Invalid --min-expiry "${local.minExpiry}". Expected unix seconds.`);
+          (err as { exitCode?: number }).exitCode = 2;
+          throw err;
+        }
 
         // Resolve underlying symbol -> price-feed address via chain config so
         // we can match the order's priceFeed instead of relying on the API
