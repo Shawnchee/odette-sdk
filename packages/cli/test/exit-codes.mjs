@@ -126,6 +126,11 @@ check('without --config, the CLI reads <HOME>/.config/odette/config.json from th
   }
 });
 
+check('config set chainId 1 is a usage error (exit 2)', () => {
+  const r = runCli([...noCfg, 'config', 'set', 'chainId', '1']);
+  assert.equal(r.code, 2, r.stderr);
+});
+
 check('RPC URL errors never print the URL path or query (API keys)', () => {
   for (const url of ['http://rpc.example.com/v2/SECRETAPIKEY123?apikey=SECRETQUERY', 'not a url SECRETAPIKEY123']) {
     const r = runCli([...noCfg, '--rpc-url', url, 'orders']);

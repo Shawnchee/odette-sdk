@@ -87,13 +87,16 @@ function parseValue(key: AllowedKey, value: string): Config[AllowedKey] {
   if (key === 'chainId') {
     const n = Number.parseInt(value, 10);
     if (n !== DEFAULT_CHAIN_ID) {
-      throw new Error(`chainId must be ${DEFAULT_CHAIN_ID} (Base). Odette trades on Base only. Got "${value}".`);
+      throw Object.assign(
+        new Error(`chainId must be ${DEFAULT_CHAIN_ID} (Base). Odette trades on Base only. Got "${value}".`),
+        { exitCode: 2 }
+      );
     }
     return n;
   }
   if (key === 'privateKey') {
     if (!PRIVATE_KEY_REGEX.test(value)) {
-      throw new Error(`privateKey must be a 0x-prefixed 64-char hex string`);
+      throw Object.assign(new Error('privateKey must be a 0x-prefixed 64-char hex string'), { exitCode: 2 });
     }
     return value;
   }
