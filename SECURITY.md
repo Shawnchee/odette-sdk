@@ -3,9 +3,14 @@
 ## Reporting a vulnerability
 
 If you find a security issue in `@thetanuts-finance/odette-sdk` or
-`@thetanuts-finance/odette-cli`, report it privately. **Do not open a public GitHub issue.**
+`@thetanuts-finance/odette-cli`, report it privately:
+**[Report a vulnerability](https://github.com/Shawnchee/odette-sdk/security/advisories/new)**
+(the repo's Security tab → "Report a vulnerability").
 
-Email **security@thetanuts.finance** with:
+**Do not open a public issue for a security problem.** A public issue shows the
+problem to everyone before it is fixed.
+
+Include:
 
 - what the issue is and what an attacker could do with it,
 - steps to reproduce (commands or a short code snippet, and the package version),
@@ -19,7 +24,8 @@ Email **security@thetanuts.finance** with:
 - A way past the safety checks (wrong chain, unknown OptionBook, hidden products).
 - A dependency vulnerability that these packages actually reach.
 
-Bugs that don't affect funds or keys go to normal GitHub issues.
+Bugs that don't affect funds or keys go to normal
+[GitHub issues](https://github.com/Shawnchee/odette-sdk/issues).
 
 ### What to expect
 
