@@ -1,6 +1,6 @@
 {
   "name": "@thetanuts-finance/odette-cli",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Odette command-line interface. Buy Odette options on Base from a terminal.",
   "type": "module",
   "bin": {
@@ -41,7 +41,7 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
-    "@thetanuts-finance/odette-sdk": "0.1.0",
+    "@thetanuts-finance/odette-sdk": "0.1.1",
     "cli-table3": "0.6.5",
     "commander": "12.1.0",
     "ethers": "^6.16.0",
