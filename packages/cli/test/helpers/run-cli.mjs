@@ -22,14 +22,20 @@ export function writeConfig(dir, cfg, name = 'config.json') {
   return p;
 }
 
+/**
+ * HOME and XDG_CONFIG_HOME default to a fresh temp dir per call, so a run
+ * without --config never reads the real ~/.config/odette. env overrides them.
+ */
 export function runCli(args, { env = {}, input = '' } = {}) {
+  const home = tempDir();
   const r = spawnSync(process.execPath, ['--conditions=odette-source', '--import', 'tsx', '--import', stub, entry, ...args], {
     input,
     encoding: 'utf8',
     timeout: 60_000,
     env: {
       PATH: process.env.PATH,
-      HOME: process.env.HOME,
+      HOME: home,
+      XDG_CONFIG_HOME: join(home, '.config'),
       NO_COLOR: '1',
       COLUMNS: '200',
       ...env,

@@ -4,6 +4,8 @@
 // cli/tests/exitCodes.test.ts. Network is stubbed; nothing is sent.
 
 import assert from 'node:assert/strict';
+import { mkdirSync } from 'node:fs';
+import { join } from 'node:path';
 import { Interface, Wallet } from 'ethers';
 import { runCli, tempDir, writeConfig } from './helpers/run-cli.mjs';
 
@@ -107,6 +109,21 @@ check('-o bogus exits 2 and lists the allowed formats; -o json still exits 0', (
   const ok = runCli([...noCfg, '-o', 'json', 'orders']);
   assert.equal(ok.code, 0, ok.stderr);
   assert.ok(Array.isArray(JSON.parse(ok.stdout)));
+});
+
+check('without --config, the CLI reads <HOME>/.config/odette/config.json from the test HOME', () => {
+  const home = tempDir();
+  mkdirSync(join(home, '.config', 'odette'), { recursive: true });
+  const w = Wallet.createRandom(); // generated per run, never printed
+  writeConfig(join(home, '.config', 'odette'), { version: 1, chainId: 8453, rpcUrl: 'https://mainnet.base.org', privateKey: w.privateKey });
+  for (const env of [{ HOME: home, XDG_CONFIG_HOME: '' }, { HOME: home, XDG_CONFIG_HOME: join(home, '.config') }]) {
+    const r = runCli(['-o', 'json', 'wallet', 'show'], { env });
+    assert.equal(r.code, 0, r.stderr);
+    const j = JSON.parse(r.stdout);
+    assert.equal(j.address, w.address);
+    assert.equal(j.configPath, join(home, '.config', 'odette', 'config.json'));
+    assert.ok(!(r.stdout + r.stderr).includes(w.privateKey.slice(2)), 'key printed');
+  }
 });
 
 console.log(`# exit-codes: ${passed} passed`);
