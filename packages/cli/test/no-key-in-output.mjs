@@ -30,7 +30,8 @@ const cases = [
   ['config show', ['--config', cfg, 'config', 'show'], {}],
   ['fill --dry-run -o json', ['--config', cfg, '--dry-run', '-o', 'json', 'fill', ...PUT, '--collateral', '5'], {}],
   ['preview', ['--config', cfg, 'preview', ...PUT], {}],
-  ['--private-key flag + failing check', ['--config', `${dir}/absent.json`, '--private-key', key, 'fill', ...PUT, '--collateral', '5'], { STUB_TAKER_USDC: '0' }],
+  ['--private-key (removed flag) + fill', ['--config', `${dir}/absent.json`, '--private-key', key, 'fill', ...PUT, '--collateral', '5'], {}],
+  ['ODETTE_PRIVATE_KEY env + failing check', ['--config', `${dir}/absent.json`, 'fill', ...PUT, '--collateral', '5'], { ODETTE_PRIVATE_KEY: key, STUB_TAKER_USDC: '0' }],
   ['ODETTE_PRIVATE_KEY env + dry-run table', ['--config', `${dir}/absent.json`, '--dry-run', 'fill', ...PUT], { ODETTE_PRIVATE_KEY: key }],
 ];
 

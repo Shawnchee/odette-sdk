@@ -1,7 +1,8 @@
 // Adapted from thetanuts-sdk cli/src/client.ts at 9e72aef1ab5c008ccc92352fa5048bd08c452ede.
 // MIT License, Copyright (c) 2026 Thetanuts Finance.
 // Changes: OdetteClient; Base only; referrer resolution removed (the referrer is
-// the constant ODETTE_REFERRER); RFQ keystore removed; ODETTE_FEED_URL.
+// the constant ODETTE_REFERRER); RFQ keystore removed; ODETTE_FEED_URL;
+// no --private-key flag (env or config only).
 import { ethers } from 'ethers';
 import { OdetteClient, ODETTE_REFERRER } from '@thetanuts-finance/odette-sdk';
 import type { OptionValues } from 'commander';
@@ -10,7 +11,7 @@ import { DEFAULT_CHAIN_ID, DEFAULT_RPC_URL } from './defaults.js';
 
 /**
  * Resolution order for any setting (descending priority):
- *   1. CLI global flag (e.g. --rpc-url, --private-key)
+ *   1. CLI global flag (e.g. --rpc-url)
  *   2. Environment variable (ODETTE_RPC_URL, ODETTE_PRIVATE_KEY, ODETTE_FEED_URL)
  *   3. Config file at --config or ~/.config/odette/config.json
  *   4. Hardcoded default (see defaults.ts — Base mainnet by default)
@@ -76,53 +77,20 @@ function resolveRpcUrl(opts: OptionValues, cfg: Config | null, _chainId: number)
 const PRIVATE_KEY_REGEX = /^0x[0-9a-fA-F]{64}$/;
 
 /**
- * Best-effort wipe of `--private-key <value>` from `process.argv` so the key
- * does not persist in `/proc/PID/cmdline` for longer than necessary
- * (TNU-AUDIT-0016).
- *
- * Note: this cannot redact shell history, `ps aux` snapshots, or
- * Node-internal copies — pass the key via env, stdin, or config instead.
+ * Keys come from the environment or the 0600 config file only (CLAUDE.md
+ * rule 2). Upstream's `--private-key` flag is not ported: argv lands in shell
+ * history and process listings.
  */
-function scrubPrivateKeyFromArgv(): void {
-  const argv = process.argv;
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i];
-    if (arg === '--private-key' || arg === '-p') {
-      if (i + 1 < argv.length) {
-        argv[i + 1] = '[REDACTED]';
-      }
-    } else if (typeof arg === 'string' && arg.startsWith('--private-key=')) {
-      argv[i] = '--private-key=[REDACTED]';
-    }
-  }
-}
-
-function resolvePrivateKey(opts: OptionValues, cfg: Config | null): string | undefined {
+function resolvePrivateKey(cfg: Config | null): string | undefined {
   let key: string | undefined;
   let source: string | undefined;
-  const fromFlag = opts.privateKey as string | undefined;
-  if (fromFlag) {
-    key = fromFlag;
-    source = '--private-key flag';
-    // Emit one-time warning so users see this risk surface — argv is visible
-    // via `ps aux` and persists in shell history (TNU-AUDIT-0016).
-    if (!process.env.ODETTE_SUPPRESS_PRIVATE_KEY_WARNING) {
-      process.stderr.write(
-        'odette: warning — passing --private-key on the command line exposes ' +
-          'the key in shell history and process listings. Prefer ODETTE_PRIVATE_KEY ' +
-          'env var or `odette wallet import` for persistent storage.\n',
-      );
-    }
-    scrubPrivateKeyFromArgv();
-  } else {
-    const fromEnv = process.env.ODETTE_PRIVATE_KEY;
-    if (fromEnv) {
-      key = fromEnv;
-      source = 'ODETTE_PRIVATE_KEY env var';
-    } else if (cfg?.privateKey) {
-      key = cfg.privateKey;
-      source = 'config file';
-    }
+  const fromEnv = process.env.ODETTE_PRIVATE_KEY;
+  if (fromEnv) {
+    key = fromEnv;
+    source = 'ODETTE_PRIVATE_KEY env var';
+  } else if (cfg?.privateKey) {
+    key = cfg.privateKey;
+    source = 'config file';
   }
   if (key === undefined) return undefined;
   // Validate BEFORE handing to ethers — a malformed key would otherwise be echoed verbatim in ethers' "invalid BytesLike value" error message
@@ -145,7 +113,7 @@ export function getClient(opts: OptionValues): GetClientResult {
 
   const chainId = resolveChainId(cfg);
   const rpcUrl = resolveRpcUrl(opts, cfg, chainId);
-  const privateKey = resolvePrivateKey(opts, cfg);
+  const privateKey = resolvePrivateKey(cfg);
   const feedUrl = process.env.ODETTE_FEED_URL;
 
   const provider = new ethers.JsonRpcProvider(rpcUrl);
@@ -175,7 +143,7 @@ export function requireSigner(result: GetClientResult): void {
   if (!result.hasSigner) {
     // Exit 4: a wallet error (PRD 7.2), not a runtime failure.
     throw Object.assign(
-      new Error('This command requires a signer. Provide --private-key, set ODETTE_PRIVATE_KEY, or run `odette setup`.'),
+      new Error('This command requires a signer. Set ODETTE_PRIVATE_KEY, or run `odette wallet import` or `odette setup`.'),
       { exitCode: 4 }
     );
   }

@@ -60,8 +60,7 @@ function maskPrivateKey(pk?: string): string {
 }
 
 /** Resolve which source supplied the active private key. */
-function privateKeySource(opts: Record<string, unknown>): 'flag' | 'env' | 'config' | 'none' {
-  if (opts.privateKey) return 'flag';
+function privateKeySource(opts: Record<string, unknown>): 'env' | 'config' | 'none' {
   if (process.env.ODETTE_PRIVATE_KEY) return 'env';
   const cfgPath = (opts.config as string | undefined) ?? defaultConfigPath();
   const cfg = loadConfig(cfgPath);

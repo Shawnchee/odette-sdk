@@ -1,6 +1,7 @@
 // Adapted from thetanuts-sdk cli/src/options.ts at 9e72aef1ab5c008ccc92352fa5048bd08c452ede.
 // MIT License, Copyright (c) 2026 Thetanuts Finance.
 // Changes: --chain dropped (Base only); --referrer dropped (the Odette referrer is fixed);
+// --private-key dropped (keys come from ODETTE_PRIVATE_KEY or the 0600 config only);
 // env var and path names. --output accepts only its listed formats.
 import { Option, type Command, type OptionValues } from 'commander';
 
@@ -19,11 +20,6 @@ export function addGlobalOptions(program: Command): void {
     .option('--dry-run', 'simulate without sending transactions', false)
     .option('--yes', 'skip interactive confirmation prompts', false)
     .option('--rpc-url <url>', 'override the RPC endpoint for the active chain')
-    .option(
-      '--private-key <key>',
-      'hex private key for signing. WARNING: argv lands in shell history and ps aux — ' +
-        'prefer ODETTE_PRIVATE_KEY env var, or `odette wallet import` to store in the config.'
-    )
     .option('--config <path>', 'path to a config file (default: ~/.config/odette/config.json)')
     .option('--json-errors', 'emit errors as JSON on stderr', false)
     .option('--color', 'enable ANSI color output', true)
