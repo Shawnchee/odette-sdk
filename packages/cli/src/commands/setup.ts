@@ -226,7 +226,16 @@ export function register(program: Command): void {
             process.stderr.write(`Warning: could not fetch wallet summary: ${redactSecrets(msg)}\n`);
           }
         } else {
-          process.stdout.write('Read-only mode. Run `odette wallet import` later to add a key.\n');
+          if (existing?.privateKey) {
+            // Skip keeps the saved wallet (deleting it could destroy the only
+            // copy of a key). Say so; upstream printed "Read-only mode" here.
+            process.stdout.write(
+              'No new wallet. The existing wallet in this config is kept and can still sign. ' +
+                'To remove it, run `odette wallet reset`.\n'
+            );
+          } else {
+            process.stdout.write('Read-only mode. Run `odette wallet import` later to add a key.\n');
+          }
         }
       } catch (err) {
         renderError(err, { jsonErrors: Boolean(opts.jsonErrors), noColor: !opts.color });
