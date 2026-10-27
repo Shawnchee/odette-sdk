@@ -23,9 +23,8 @@ Bugs that don't affect funds or keys go to normal GitHub issues.
 
 ### What to expect
 
-- We reply within 3 business days.
-- We assess severity and plan a fix within 7 business days.
-- Critical issues get a patch release as soon as possible. We credit you if you want.
+We reply, assess the issue and plan a fix. Critical issues get a patch release as
+soon as possible. We credit you in the release notes if you want.
 
 ## Supported versions
 

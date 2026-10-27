@@ -6,7 +6,8 @@ Buy Odette options on Base from your terminal or your own code.
 - **The SDK**, a TypeScript library: `@thetanuts-finance/odette-sdk`
 
 Odette runs on Thetanuts Finance contracts on Base. You sign every trade with your
-own wallet. Nothing is sent to a server.
+own wallet. No trade goes through a server: `odette` only reads the public order
+list and sends your signed transaction straight to Base.
 
 ## What you can do
 
@@ -14,8 +15,8 @@ own wallet. Nothing is sent to a server.
 - Check a trade before you make it.
 - Buy an option with USDC.
 
-The tools only **buy**. They do not sell, and you don't need to close a position:
-Odette options pay out in USDC automatically at expiry.
+The tools only **buy**. They do not sell or close positions. Odette options are
+cash-settled in USDC at expiry, so there is nothing to close.
 
 ## Before you start
 
@@ -64,7 +65,8 @@ Each row is one option: its strike price, the expiry date and time, and the pric
 `--type` can be `PUT`, `CALL` or `RANGER`.
 
 **2. Check the trade.** Pick a strike and expiry from the list. `--collateral` is how
-much USDC you want to spend.
+much USDC you want to spend. (The strike and expiry below are examples: copy real
+ones from `odette orders`, because options expire every day.)
 
 ```sh
 odette preview --underlying ETH --type PUT --strike 2200 --expiry 1793174400 --collateral 5
@@ -87,7 +89,8 @@ to both. When it's done, it prints the transaction link.
 Prices update about once a minute. If the price moves while you're deciding, `odette`
 shows the new price and asks you again.
 
-Want to see the transaction without sending it? Add `--dry-run`.
+Want to see the transaction without sending it? Add `--dry-run`. With `--yes` (no
+questions), `--collateral` is required, so `odette` never buys a maximum size by itself.
 
 **Buying a RANGER.** A RANGER pays out if the price ends inside a range. It has
 four strikes, so use `--type RANGER` with `--strikes`:
