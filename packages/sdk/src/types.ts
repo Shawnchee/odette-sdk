@@ -137,6 +137,11 @@ export interface OdetteOrder extends OrderWithSignature {
   underlying: string;
   /** OptionBook to send the fill to */
   optionBook: string;
+  /**
+   * The exact signed orderExpiryTimestamp. rawApiData.orderExpiryTimestamp is a
+   * JS number (upstream's type) and can round above 2^53; the calldata uses this.
+   */
+  orderExpiryTimestamp: bigint;
   /** Feed-provided ticker (display only, never used for logic) */
   ticker?: string;
 }

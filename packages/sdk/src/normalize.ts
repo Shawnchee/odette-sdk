@@ -3,7 +3,8 @@
 // MIT License, Copyright (c) 2026 Thetanuts Finance.
 // Changes: input is a type-checked RawFeedOrder, so no field falls back to 0
 // or "". underlyingToken is left out: upstream maps BTC to a wrong token and
-// every other market to the zero address. greeks are dropped.
+// every other market to the zero address. greeks are dropped. The exact
+// orderExpiryTimestamp is kept as a bigint on OdetteOrder.
 
 import { ZeroAddress } from 'ethers';
 import type { OdetteOrder, Order, OdetteRawOrderData, ProductKind, RawFeedOrder } from './types.js';
@@ -56,6 +57,7 @@ export function toOdetteOrder(
     product,
     underlying,
     optionBook,
+    orderExpiryTimestamp: o.orderExpiryTimestamp,
     ...(raw.ticker !== undefined ? { ticker: raw.ticker } : {}),
   };
 }

@@ -281,7 +281,8 @@ export function recheckOrder(order: OdetteOrder, opts: WhitelistOptions = {}): W
   const raw: RawFeedOrder = {
     order: {
       maker: order.order.maker,
-      orderExpiryTimestamp: BigInt(r.orderExpiryTimestamp),
+      // The exact signed value; rawApiData's number can round above 2^53.
+      orderExpiryTimestamp: order.orderExpiryTimestamp ?? BigInt(r.orderExpiryTimestamp),
       collateral: r.collateral,
       isCall: r.isCall,
       priceFeed: r.priceFeed,

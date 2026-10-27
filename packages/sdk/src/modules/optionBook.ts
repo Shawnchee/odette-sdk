@@ -200,7 +200,8 @@ export class OptionBookModule {
 
     return {
       maker: order.order.maker,
-      orderExpiryTimestamp: BigInt(rawData.orderExpiryTimestamp),
+      // The exact signed value (upstream used the rounded JS number).
+      orderExpiryTimestamp: order.orderExpiryTimestamp ?? BigInt(rawData.orderExpiryTimestamp),
       collateral: rawData.collateral,
       isCall: rawData.isCall,
       priceFeed: rawData.priceFeed,

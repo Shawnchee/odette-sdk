@@ -91,4 +91,19 @@ await check('preview reports the referrer constant and the real premium', async 
   assert.equal(p.totalCollateral, (o.order.price * p.numContracts) / 100000000n);
 });
 
+await check('signed orderExpiryTimestamp above 2^53 reaches calldata exactly', async () => {
+  const big = structuredClone(sample);
+  for (const e of big.data.orders) e.order.orderExpiryTimestamp = '9007199254740993';
+  const c = new OdetteClient({ provider: chain.provider, fetch: async () => ({ ok: true, status: 200, json: async () => structuredClone(big) }) });
+  const o = (await c.api.fetchOrders(NOW)).find((x) => x.product === 'PUT');
+  assert.equal(o.orderExpiryTimestamp, 9007199254740993n);
+  const args = HAND.decodeFunctionData('fillOrder', c.optionBook.encodeFillOrder(o).data);
+  assert.equal(args.order.orderExpiryTimestamp, 9007199254740993n);
+  // uint256 max ("never expires") survives too.
+  const max = (2n ** 256n - 1n).toString();
+  for (const e of big.data.orders) e.order.orderExpiryTimestamp = max;
+  const m = (await c.api.fetchOrders(NOW)).find((x) => x.product === 'PUT');
+  assert.equal(HAND.decodeFunctionData('fillOrder', c.optionBook.encodeFillOrder(m).data).order.orderExpiryTimestamp, 2n ** 256n - 1n);
+});
+
 console.log(`# referrer-calldata: ${passed} passed`);
