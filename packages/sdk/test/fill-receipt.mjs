@@ -94,4 +94,18 @@ await check('a re-priced replacement that succeeds returns its receipt; a cancel
   await assert.rejects(client.optionBook['waitForFill'](other), /boom/);
 });
 
+await check('a logger that throws on every call cannot fail a mined fill', async () => {
+  const chain = fakeChain({ now: NOW });
+  const signer = minedSigner(chain.provider, TAKER, { events: [] });
+  const boom = () => { throw new Error('logger bug'); };
+  const client = new OdetteClient({ provider: chain.provider, signer, fetch: fetchStub, logger: { debug: boom, info: boom, warn: boom, error: boom } });
+  const [put] = (await client.api.fetchOrders(NOW)).filter((o) => o.product === 'PUT');
+  chain.setAllowance(USDC.address, put.order.maker, OPTION_BOOK_R12, 1_000_000_000000n);
+  chain.setBalance(USDC.address, put.order.maker, 1_000_000_000000n);
+  chain.setBalance(USDC.address, TAKER, 100_000000n);
+  chain.setAllowance(USDC.address, TAKER, OPTION_BOOK_R12, 100_000000n);
+  const receipt = await client.optionBook.fillOrder(put, 25_000000n, { onSent: boom });
+  assert.equal(receipt.status, 1);
+});
+
 console.log(`# fill-receipt: ${passed} passed`);

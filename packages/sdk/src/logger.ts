@@ -1,7 +1,9 @@
 // Adapted from thetanuts-sdk src/utils/logger.ts and src/types/logger.ts at
 // 9e72aef1ab5c008ccc92352fa5048bd08c452ede.
 // MIT License, Copyright (c) 2026 Thetanuts Finance.
-// Renamed to OdetteLogger. consoleLogger prefix changed to [ODETTE:*].
+// Renamed to OdetteLogger. consoleLogger prefix changed to [ODETTE:*]. The
+// Logger wrapper swallows errors thrown by a caller's logger: a log call runs
+// after a fill is mined and must never turn it into a reported failure.
 
 /**
  * Logger interface for the Odette SDK
@@ -58,18 +60,27 @@ export class Logger {
   }
 
   debug(msg: string, meta?: unknown): void {
-    this.logger.debug?.(msg, meta);
+    this.call('debug', msg, meta);
   }
 
   info(msg: string, meta?: unknown): void {
-    this.logger.info?.(msg, meta);
+    this.call('info', msg, meta);
   }
 
   warn(msg: string, meta?: unknown): void {
-    this.logger.warn?.(msg, meta);
+    this.call('warn', msg, meta);
   }
 
   error(msg: string, meta?: unknown): void {
-    this.logger.error?.(msg, meta);
+    this.call('error', msg, meta);
+  }
+
+  /** Logging is best-effort: a throwing logger must never change the outcome. */
+  private call(level: keyof OdetteLogger, msg: string, meta?: unknown): void {
+    try {
+      this.logger[level]?.(msg, meta);
+    } catch {
+      // ignore
+    }
   }
 }
