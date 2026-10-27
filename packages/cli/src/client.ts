@@ -67,7 +67,9 @@ function resolveRpcUrl(opts: OptionValues, cfg: Config | null, _chainId: number)
   }
   const host = parsed.hostname;
   const isLocal = host === 'localhost' || host === '127.0.0.1';
-  if (parsed.protocol !== 'https:' && !isLocal) {
+  // https anywhere; plain http only on localhost (upstream let any scheme
+  // through on localhost, e.g. ftp://127.0.0.1).
+  if (!(parsed.protocol === 'https:' || (parsed.protocol === 'http:' && isLocal))) {
     throw new Error(
       `odette: RPC URL must use https:// (got ${parsed.protocol}//${parsed.host}); pass an https URL or use a localhost RPC for dev`
     );

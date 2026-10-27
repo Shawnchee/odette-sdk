@@ -164,5 +164,20 @@ check('wallet approve --amount with a bad value exits 2', () => {
   }
 });
 
+check('config set rpcUrl requires https; config show and set hide the URL path and query', () => {
+  const p = join(tempDir(), 'rpc.json');
+  assert.equal(runCli(['--config', p, 'config', 'set', 'rpcUrl', 'ftp://h/SECRETPATH?k=SQ']).code, 2);
+  assert.equal(runCli(['--config', p, 'config', 'set', 'rpcUrl', 'not a url']).code, 2);
+  assert.equal(runCli(['--config', p, 'config', 'set', 'rpcUrl', 'ftp://127.0.0.1:9/x']).code, 2, 'ftp on localhost');
+  assert.equal(runCli(['--config', p, 'config', 'set', 'rpcUrl', 'http://127.0.0.1:8545']).code, 0, 'http on localhost is the dev escape hatch');
+  assert.notEqual(runCli([...noCfg, '--rpc-url', 'ftp://127.0.0.1:9/x', 'orders']).code, 0, 'ftp refused at use time too');
+  const set = runCli(['--config', p, '-o', 'json', 'config', 'set', 'rpcUrl', 'https://base-mainnet.example.com/v2/SECRETKEY123?apikey=SQ']);
+  assert.equal(set.code, 0, set.stderr);
+  const show = runCli(['--config', p, '-o', 'json', 'config', 'show']);
+  for (const out of [set.stdout + set.stderr, show.stdout + show.stderr]) assert.ok(!out.includes('SECRET') && !out.includes('SQ'), out);
+  assert.match(JSON.parse(show.stdout).rpcUrl, /^https:\/\/base-mainnet\.example\.com\/… \(path and query hidden\)$/);
+  assert.equal(runCli(['--config', p, 'config', 'set', 'rpcUrl', 'https://mainnet.base.org']).code, 0);
+  assert.equal(JSON.parse(runCli(['--config', p, '-o', 'json', 'config', 'show']).stdout).rpcUrl, 'https://mainnet.base.org');
+});
 
 console.log(`# exit-codes: ${passed} passed`);

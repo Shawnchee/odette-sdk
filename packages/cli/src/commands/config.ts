@@ -75,6 +75,20 @@ function maskPrivateKey(pk?: string): string {
   return `0x…${pk.slice(-4)}`;
 }
 
+/**
+ * Show an RPC URL without its path or query: hosted RPC URLs carry the API key
+ * there (for example /v2/<key>). `https://mainnet.base.org` prints unchanged.
+ */
+function maskRpcUrl(url: string): string {
+  try {
+    const u = new URL(url);
+    const hidden = (u.pathname !== '/' && u.pathname !== '') || u.search !== '' || u.username !== '';
+    return hidden ? `${u.protocol}//${u.host}/… (path and query hidden)` : `${u.protocol}//${u.host}`;
+  } catch {
+    return '<invalid URL>';
+  }
+}
+
 function emptyConfig(): Config {
   return {
     version: 1,
@@ -100,7 +114,20 @@ function parseValue(key: AllowedKey, value: string): Config[AllowedKey] {
     }
     return value;
   }
-  // rpcUrl — plain string
+  if (key === 'rpcUrl') {
+    // Same rule as at use time (client.ts): https, or localhost for dev.
+    let parsed: URL;
+    try {
+      parsed = new URL(value);
+    } catch {
+      throw Object.assign(new Error('rpcUrl is not a valid URL.'), { exitCode: 2 });
+    }
+    const local = parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1';
+    if (!(parsed.protocol === 'https:' || (parsed.protocol === 'http:' && local))) {
+      throw Object.assign(new Error(`rpcUrl must use https:// (got ${parsed.protocol}//${parsed.host}).`), { exitCode: 2 });
+    }
+    return value;
+  }
   return value;
 }
 
@@ -124,7 +151,7 @@ export function register(program: Command): void {
         const masked = {
           version: cfg.version,
           chainId: cfg.chainId,
-          rpcUrl: cfg.rpcUrl,
+          rpcUrl: maskRpcUrl(cfg.rpcUrl),
           privateKey: maskPrivateKey(cfg.privateKey),
           referrer: `${ODETTE_REFERRER} (fixed)`,
           path,
@@ -196,7 +223,11 @@ export function register(program: Command): void {
         (cfg as unknown as Record<string, unknown>)[key] = parsed;
         saveConfig(cfg, path);
         render(
-          { key, value: key === 'privateKey' ? maskPrivateKey(String(parsed)) : parsed, path },
+          {
+            key,
+            value: key === 'privateKey' ? maskPrivateKey(String(parsed)) : key === 'rpcUrl' ? maskRpcUrl(String(parsed)) : parsed,
+            path,
+          },
           { output: opts.output, noColor: !opts.color }
         );
       } catch (err) {
