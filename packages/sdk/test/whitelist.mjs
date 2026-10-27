@@ -232,4 +232,11 @@ check('an order with under 30 s left is refused', () => {
   assert.equal(rejectReason(x), 'accepted');
 });
 
+check('RANGER outer widths must be equal (RangerOption.validateParams)', () => {
+  const lop = clone(ranger);
+  lop.order.strikes = [lop.order.strikes[0], lop.order.strikes[1], lop.order.strikes[2], lop.order.strikes[3] + 100_00000000n];
+  assert.equal(rejectReason(lop), 'bad-strikes');
+  assert.equal(rejectReason(ranger), 'accepted');
+});
+
 console.log(`# whitelist: ${passed} passed`);

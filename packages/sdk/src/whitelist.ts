@@ -122,7 +122,7 @@ export function isProductEnabled(product: ProductKind, opts: WhitelistOptions = 
  * - PUT, LINEAR_CALL: one strike (isDirectionalOrder).
  * - CALL_SPREAD: two strikes, first < second. PUT_SPREAD: first > second (isSpreadOrder).
  * - RANGER: four strikes (isRangerOrder). This port also requires them to rise
- *   strictly, because RangerOption computes k = strikes[1] - strikes[0] and needs k > 0.
+ *   strictly with equal outer widths, as RangerOption.validateParams does.
  */
 function strikesMatch(product: ProductKind, strikes: readonly bigint[]): boolean {
   if (strikes.some((s) => s <= 0n)) return false;
@@ -135,11 +135,14 @@ function strikesMatch(product: ProductKind, strikes: readonly bigint[]): boolean
     case 'PUT_SPREAD':
       return strikes.length === 2 && strikes[0]! > strikes[1]!;
     case 'RANGER':
+      // RangerOption.validateParams: strictly rising, and the two spread
+      // widths must be equal (strikes[1] - strikes[0] == strikes[3] - strikes[2]).
       return (
         strikes.length === 4 &&
         strikes[0]! < strikes[1]! &&
         strikes[1]! < strikes[2]! &&
-        strikes[2]! < strikes[3]!
+        strikes[2]! < strikes[3]! &&
+        strikes[1]! - strikes[0]! === strikes[3]! - strikes[2]!
       );
   }
 }
