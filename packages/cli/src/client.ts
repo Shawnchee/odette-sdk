@@ -2,7 +2,8 @@
 // MIT License, Copyright (c) 2026 Thetanuts Finance.
 // Changes: OdetteClient; Base only; referrer resolution removed (the referrer is
 // the constant ODETTE_REFERRER); RFQ keystore removed; ODETTE_FEED_URL;
-// no --private-key flag (env or config only).
+// no --private-key flag (env or config only); RPC URL errors never print the
+// URL path or query (they can hold an API key).
 import { ethers } from 'ethers';
 import { OdetteClient, ODETTE_REFERRER } from '@thetanuts-finance/odette-sdk';
 import type { OptionValues } from 'commander';
@@ -61,13 +62,14 @@ function resolveRpcUrl(opts: OptionValues, cfg: Config | null, _chainId: number)
   try {
     parsed = new URL(rpcUrl);
   } catch {
-    throw new Error(`odette: RPC URL is not a valid URL (got ${rpcUrl})`);
+    // Never echo the URL: hosted RPC URLs carry an API key.
+    throw new Error('odette: RPC URL is not a valid URL. Check --rpc-url, ODETTE_RPC_URL or the config rpcUrl.');
   }
   const host = parsed.hostname;
   const isLocal = host === 'localhost' || host === '127.0.0.1';
   if (parsed.protocol !== 'https:' && !isLocal) {
     throw new Error(
-      `odette: RPC URL must use https:// (got ${rpcUrl}); pass an https URL or use a localhost RPC for dev`
+      `odette: RPC URL must use https:// (got ${parsed.protocol}//${parsed.host}); pass an https URL or use a localhost RPC for dev`
     );
   }
   return rpcUrl;

@@ -126,4 +126,13 @@ check('without --config, the CLI reads <HOME>/.config/odette/config.json from th
   }
 });
 
+check('RPC URL errors never print the URL path or query (API keys)', () => {
+  for (const url of ['http://rpc.example.com/v2/SECRETAPIKEY123?apikey=SECRETQUERY', 'not a url SECRETAPIKEY123']) {
+    const r = runCli([...noCfg, '--rpc-url', url, 'orders']);
+    assert.notEqual(r.code, 0);
+    assert.ok(!(r.stdout + r.stderr).includes('SECRET'), r.stderr);
+  }
+});
+
+
 console.log(`# exit-codes: ${passed} passed`);
