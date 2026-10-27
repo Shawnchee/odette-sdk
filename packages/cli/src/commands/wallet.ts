@@ -4,6 +4,7 @@
 // the r12 OptionBook only (no --spender, no other token); --for optionBook only;
 // `show` reports the fixed referrer; names; config errors exit 4. `--dry-run`
 // never writes or deletes the config (create, import, reset), even with --force.
+// `balance --all` redacts RPC error text.
 import fs from 'node:fs';
 import type { Command } from 'commander';
 import prompts from 'prompts';
@@ -11,7 +12,7 @@ import { ethers } from 'ethers';
 import type { OdetteClient } from '@thetanuts-finance/odette-sdk';
 import { getGlobalOpts } from '../options.js';
 import { getClient, requireSigner, type GetClientResult } from '../client.js';
-import { render, renderError, buildTxReceiptPayload, fetchEthUsdSafe } from '../output.js';
+import { render, renderError, redactSecrets, buildTxReceiptPayload, fetchEthUsdSafe } from '../output.js';
 import { confirm } from '../confirm.js';
 import {
   defaultConfigPath,
@@ -252,7 +253,7 @@ export function register(program: Command): void {
             });
           } catch (err) {
             if (local.all) {
-              const msg = (err as Error).message ?? String(err);
+              const msg = redactSecrets((err as Error).message ?? String(err));
               rows.push({
                 symbol,
                 address: t.address,

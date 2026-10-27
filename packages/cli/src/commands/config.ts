@@ -3,7 +3,7 @@
 // Changes: keys are chainId (8453 only), rpcUrl, privateKey. `referrer` is
 // refused (it is fixed); `show` reports the fixed referrer. Names. Config
 // errors exit 4. `--dry-run` never writes the file. `validate` never echoes
-// the key (ethers' error text contains it).
+// the key (ethers' error text contains it). RPC error text is redacted.
 import type { Command } from 'commander';
 import fs from 'node:fs';
 import { ethers } from 'ethers';
@@ -17,7 +17,7 @@ import {
 } from '../config.js';
 import { DEFAULT_CHAIN_ID, DEFAULT_RPC_URL } from '../defaults.js';
 import { getGlobalOpts } from '../options.js';
-import { render, renderError } from '../output.js';
+import { render, renderError, redactSecrets } from '../output.js';
 
 /**
  * Read all bytes from stdin and return as a UTF-8 string. Used by
@@ -268,7 +268,7 @@ export function register(program: Command): void {
           }
         } catch (err) {
           const msg = (err as Error).message ?? String(err);
-          process.stderr.write(`RPC unreachable: ${msg}\n`);
+          process.stderr.write(`RPC unreachable: ${redactSecrets(msg)}\n`);
           process.exit(4);
         }
 

@@ -2,6 +2,7 @@
 // MIT License, Copyright (c) 2026 Thetanuts Finance.
 // Changes: comments; fetchEthUsdSafe is bounded by a timeout (a stalled price
 // lookup hid the receipt of a completed fill, inviting a duplicate buy).
+// redactSecrets is exported for raw error text printed outside renderError.
 import Table from 'cli-table3';
 import pc from 'picocolors';
 
@@ -431,7 +432,7 @@ export function buildTxReceiptPayload(
  * Intentionally narrow: we don't try to redact every possible secret, just
  * the ones we know reliably leak into ethers' error surface.
  */
-function redactSecrets(s: string): string {
+export function redactSecrets(s: string): string {
   return s
     .replace(/Bearer\s+[A-Za-z0-9_\-\.=]+/g, 'Bearer <redacted>')
     .replace(/\/v[0-9]+\/[A-Za-z0-9_\-]{20,}/g, (m) => {

@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 // Adapted from thetanuts-sdk cli/src/index.ts at 9e72aef1ab5c008ccc92352fa5048bd08c452ede.
 // MIT License, Copyright (c) 2026 Thetanuts Finance.
-// Changes: name and description.
+// Changes: name and description. The fallback error print is redacted.
 import { Command } from 'commander';
 import { createRequire } from 'node:module';
 import { registerCommands } from './commands/registry.js';
 import { addGlobalOptions } from './options.js';
-import { renderError } from './output.js';
+import { renderError, redactSecrets } from './output.js';
 
 // Resolve the CLI version from package.json at runtime so bumping
 // `cli/package.json` is the only edit needed for a release. `createRequire`
@@ -82,7 +82,7 @@ program.parseAsync(process.argv).catch((err) => {
   try {
     renderError(err, { jsonErrors });
   } catch {
-    process.stderr.write(((err as Error)?.message ?? String(err)) + '\n');
+    process.stderr.write(redactSecrets((err as Error)?.message ?? String(err)) + '\n');
   }
   process.exit(1);
 });

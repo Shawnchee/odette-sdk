@@ -2,6 +2,7 @@
 // MIT License, Copyright (c) 2026 Thetanuts Finance.
 // Changes: no referrer prompt (the Odette referrer is fixed and is shown in the
 // summary); names; config errors exit 4; `--dry-run` writes nothing.
+// RPC error text is redacted before it is printed.
 import fs from 'node:fs';
 import type { Command } from 'commander';
 import prompts from 'prompts';
@@ -11,7 +12,7 @@ import { defaultConfigPath, loadConfig, saveConfig, stopForDryRun, type Config }
 import { DEFAULT_CHAIN_ID, DEFAULT_RPC_URL } from '../defaults.js';
 import { getGlobalOpts } from '../options.js';
 import { getClient } from '../client.js';
-import { render, renderError } from '../output.js';
+import { render, renderError, redactSecrets } from '../output.js';
 
 const PRIVATE_KEY_REGEX = /^0x[0-9a-fA-F]{64}$/;
 
@@ -71,7 +72,7 @@ async function promptAndValidateRpc(
       return url;
     } catch (err) {
       const msg = (err as Error).message ?? String(err);
-      process.stderr.write(`RPC connection failed: ${msg}\nTry a different URL.\n`);
+      process.stderr.write(`RPC connection failed: ${redactSecrets(msg)}\nTry a different URL.\n`);
       continue;
     }
   }
@@ -222,7 +223,7 @@ export function register(program: Command): void {
           } catch (err) {
             // Don't fail setup if the post-save wallet check fails — config is already written.
             const msg = (err as Error).message ?? String(err);
-            process.stderr.write(`Warning: could not fetch wallet summary: ${msg}\n`);
+            process.stderr.write(`Warning: could not fetch wallet summary: ${redactSecrets(msg)}\n`);
           }
         } else {
           process.stdout.write('Read-only mode. Run `odette wallet import` later to add a key.\n');
