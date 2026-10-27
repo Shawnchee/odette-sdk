@@ -1,0 +1,54 @@
+{
+  "name": "@thetanuts-finance/odette-cli",
+  "version": "0.1.0",
+  "description": "Odette command-line interface. Buy Odette options on Base from a terminal.",
+  "type": "module",
+  "bin": {
+    "odette": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "NOTICE.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && chmod +x dist/index.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "odette": "node --conditions=odette-source --import tsx src/index.ts",
+    "prepack": "node ../../scripts/copy-package-docs.mjs",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "odette",
+    "thetanuts",
+    "options",
+    "cli",
+    "defi",
+    "base"
+  ],
+  "author": "Thetanuts Finance",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Shawnchee/odette-sdk.git",
+    "directory": "packages/cli"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@thetanuts-finance/odette-sdk": "0.1.0",
+    "cli-table3": "0.6.5",
+    "commander": "12.1.0",
+    "ethers": "^6.16.0",
+    "picocolors": "1.1.1",
+    "prompts": "2.4.2"
+  },
+  "devDependencies": {
+    "@types/prompts": "2.4.9"
+  }
+}
