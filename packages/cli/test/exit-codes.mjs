@@ -157,5 +157,12 @@ check('an empty or malformed --collateral is a usage error, never "no budget" (e
   }
 });
 
+check('wallet approve --amount with a bad value exits 2', () => {
+  for (const val of ['abc', '1.2.3', '']) {
+    const r = runCli([...noCfg, 'wallet', 'approve', '--amount', val], { env: { ODETTE_PRIVATE_KEY: key } });
+    assert.equal(r.code, 2, `--amount ${JSON.stringify(val)}: ${r.stderr}`);
+  }
+});
+
 
 console.log(`# exit-codes: ${passed} passed`);

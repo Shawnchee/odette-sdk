@@ -91,7 +91,11 @@ function parseAmount(
   if (amount === 'max') {
     return ethers.MaxUint256;
   }
-  return client.utils.toBigInt(amount, decimals);
+  try {
+    return client.utils.toBigInt(amount, decimals);
+  } catch {
+    throw Object.assign(new Error(`Invalid --amount "${amount}". Pass a USDC amount, for example 5, or "max".`), { exitCode: 2 });
+  }
 }
 
 function resolveSpender(
