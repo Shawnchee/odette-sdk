@@ -1,0 +1,233 @@
+{
+  "_fixture": "Built from the 2026-10-27 live feed. Entries 0-4 are real Odette orders. Entries 5-9 are rejects: a real CALL_FLY (unknown implementation), then real PUTs edited to zero implementation, WETH collateral, unknown price feed, 3 strikes. Signatures are placeholders. nonce removed (a 64-hex string looks like a key to secret scanners).",
+  "data": {
+    "orders": [
+      {
+        "order": {
+          "ticker": "ETH-28OCT26-2180-P",
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793085698,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": false,
+          "priceFeed": "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70",
+          "implementation": "0x7355EB92dfb0503DB558a70c10843618932ab290",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            218000000000
+          ],
+          "expiry": 1793174400,
+          "price": "228880710",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed"
+      },
+      {
+        "order": {
+          "ticker": "BTC-28OCT26-77000-P",
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793085698,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": false,
+          "priceFeed": "0x64c911996D3c6aC71f9b455B1E8E7266BcbD848F",
+          "implementation": "0x7355EB92dfb0503DB558a70c10843618932ab290",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            7700000000000
+          ],
+          "expiry": 1793174400,
+          "price": "6089308836",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed"
+      },
+      {
+        "order": {
+          "ticker": "ETH-28OCT26-2320-C",
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793085698,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": true,
+          "priceFeed": "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70",
+          "implementation": "0x051791df68223AE173Fade5217C48875e36eef61",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            232000000000
+          ],
+          "expiry": 1793174400,
+          "price": "1698926851",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed"
+      },
+      {
+        "order": {
+          "ticker": "SOL-28OCT26-101-C",
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793085698,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": true,
+          "priceFeed": "0x975043adBb80fc32276CbF9Bbcfd4A601a12462D",
+          "implementation": "0x051791df68223AE173Fade5217C48875e36eef61",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            10100000000
+          ],
+          "expiry": 1793174400,
+          "price": "84994247",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed"
+      },
+      {
+        "order": {
+          "ticker": "BTC-28OCT26-79000/80000-RANGER",
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793085698,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": true,
+          "priceFeed": "0x64c911996D3c6aC71f9b455B1E8E7266BcbD848F",
+          "implementation": "0x9980ec85bc6fE07340adb36c76FA093bb6D4FcBc",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            7850000000000,
+            7900000000000,
+            8000000000000,
+            8050000000000
+          ],
+          "expiry": 1793174400,
+          "price": "30426019982",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed"
+      },
+      {
+        "order": {
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793085698,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": true,
+          "priceFeed": "0x64c911996D3c6aC71f9b455B1E8E7266BcbD848F",
+          "implementation": "0xa1d5f6b16A2e7f298F8d2cDF78F7779B4A20C4C2",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            8000000000000,
+            8100000000000,
+            8200000000000
+          ],
+          "expiry": 1793174400,
+          "price": "25569716785",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed"
+      },
+      {
+        "order": {
+          "ticker": "ETH-28OCT26-2180-P-ZEROIMPL",
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793085698,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": false,
+          "priceFeed": "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70",
+          "implementation": "0x0000000000000000000000000000000000000000",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            218000000000
+          ],
+          "expiry": 1793174400,
+          "price": "228880710",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed"
+      },
+      {
+        "order": {
+          "ticker": "ETH-28OCT26-2180-P-WETH",
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793085698,
+          "collateral": "0x4200000000000000000000000000000000000006",
+          "isCall": false,
+          "priceFeed": "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70",
+          "implementation": "0x7355EB92dfb0503DB558a70c10843618932ab290",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            218000000000
+          ],
+          "expiry": 1793174400,
+          "price": "228880710",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed"
+      },
+      {
+        "order": {
+          "ticker": "ETH-28OCT26-2180-P-UNKNOWNFEED",
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793085698,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": false,
+          "priceFeed": "0x2222222222222222222222222222222222222222",
+          "implementation": "0x7355EB92dfb0503DB558a70c10843618932ab290",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            218000000000
+          ],
+          "expiry": 1793174400,
+          "price": "228880710",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed"
+      },
+      {
+        "order": {
+          "ticker": "ETH-28OCT26-2180-P-3STRIKE",
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793085698,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": false,
+          "priceFeed": "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70",
+          "implementation": "0x7355EB92dfb0503DB558a70c10843618932ab290",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            218000000000,
+            228000000000,
+            238000000000
+          ],
+          "expiry": 1793174400,
+          "price": "228880710",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed"
+      }
+    ]
+  }
+}
