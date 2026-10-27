@@ -100,7 +100,8 @@ odette orders --underlying BTC --type RANGER
 odette preview --underlying BTC --type RANGER --strikes 78500,79000,80000,80500 --expiry 1793174400 --collateral 5
 ```
 
-`preview` shows what you pay (`premium`) and the most you can be paid at expiry (`maxPayout`).
+`preview` shows what you pay (`premium`) and the most you can be paid at expiry (`maxPayout`). In `-o json`
+output the premium is the `totalCollateral` field (the name upstream uses).
 
 ## Useful flags
 
