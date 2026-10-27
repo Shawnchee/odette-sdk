@@ -3,7 +3,7 @@
 // and decoded with the real ethers Interface. No network.
 
 import { Interface, getAddress } from 'ethers';
-import { OPTION_BOOK_ABI, ERC20_ABI } from '../../src/index.ts';
+import { OPTION_BOOK_ABI, ERC20_ABI, OPTION_BOOK_R12, ODETTE_REFERRER } from '../../src/index.ts';
 
 const book = new Interface(OPTION_BOOK_ABI);
 const erc20 = new Interface(ERC20_ABI);
@@ -92,6 +92,50 @@ export function recordingSigner(provider, address = '0x1111111111111111111111111
     async sendTransaction(tx) {
       sent.push(tx);
       throw new Error('recordingSigner: not sent (test)');
+    },
+  };
+}
+
+/**
+ * A signer whose send "succeeds" without a network. ethers wraps the send
+ * result in a ContractTransactionResponse, and its wait() asks the provider
+ * for the receipt, so this adds getTransactionReceipt to the fake provider.
+ * The receipt holds one OrderFilled log encoded with the real ethers Interface.
+ *
+ * opts.referrer  referrer recorded in OrderFilled (default ODETTE_REFERRER)
+ * opts.events    array; gets 'mined' when the receipt is returned
+ */
+export function minedSigner(provider, address = '0x1111111111111111111111111111111111111111', opts = {}) {
+  const sent = [];
+  const hash = '0x' + 'ab'.repeat(32);
+  const referrer = opts.referrer ?? ODETTE_REFERRER;
+  const log = book.encodeEventLog('OrderFilled', [
+    123n, address, '0x3333333333333333333333333333333333333333',
+    '0x4444444444444444444444444444444444444444', 25_000000n, 0n, referrer, 0n, true,
+  ]);
+  const receipt = {
+    hash, status: 1, blockNumber: 2, blockHash: '0x' + 'cd'.repeat(32), index: 0,
+    from: address, to: OPTION_BOOK_R12, contractAddress: null, logsBloom: '0x', gasUsed: 300_000n,
+    cumulativeGasUsed: 300_000n, gasPrice: 1n, type: 2, root: null,
+    logs: [{ address: OPTION_BOOK_R12, topics: log.topics, data: log.data, transactionHash: hash,
+      blockHash: '0x' + 'cd'.repeat(32), blockNumber: 2, index: 0, transactionIndex: 0, removed: false }],
+  };
+  provider.getTransactionReceipt = async (h) => {
+    await new Promise((r) => setTimeout(r, 5));
+    if (h !== hash) return null;
+    opts.events?.push('mined');
+    return receipt;
+  };
+  return {
+    provider,
+    sent,
+    async getAddress() { return address; },
+    async estimateGas(tx) { return provider.estimateGas({ ...tx, from: address }); },
+    async call(tx) { return provider.call(tx); },
+    async resolveName(n) { return n; },
+    async sendTransaction(tx) {
+      sent.push(tx);
+      return { ...tx, hash, from: address, nonce: 0, chainId: 8453n, value: 0n, data: tx.data, to: tx.to };
     },
   };
 }

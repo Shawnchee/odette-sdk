@@ -12,6 +12,7 @@
 // - checkFill runs the pre-send checks; fillOrder refuses to send when one fails.
 // - The target OptionBook is the order's book when it is a known release
 //   (upstream :137-151 accepted only the configured book; today both are r12).
+// - fillOrder takes an optional onSent callback that gets the tx hash at broadcast.
 // Dropped: RFQ, claim, swapAndFillOrder, cancel, admin and callStatic helpers.
 
 import { Contract, Interface } from 'ethers';
@@ -444,12 +445,18 @@ export class OptionBookModule {
    *
    * @param order - An order from client.api.fetchOrders()
    * @param usdcAmount - USDC premium to spend (6 decimals). If not provided, fills max available.
+   * @param opts.onSent - Called with the tx hash after broadcast, before the receipt. Does not change calldata.
    * @returns Transaction receipt. Decode it with decodeOrderFilled.
    *
    * @throws {OdetteError} CHECK_FAILED when a pre-send check fails
    * @throws {OdetteError} SIGNER_REQUIRED if no signer is configured
    */
-  async fillOrder(input: OdetteOrder, usdcAmount?: bigint): Promise<TransactionReceipt> {
+  // opts has a default so fillOrder.length stays 2 (referrer-fixed.mjs checks it).
+  async fillOrder(
+    input: OdetteOrder,
+    usdcAmount?: bigint,
+    opts: { onSent?: (hash: string) => void } = {}
+  ): Promise<TransactionReceipt> {
     this.client.requireSigner();
     const order = this.listed(input);
     const checks = await this.checkFill(order, usdcAmount, { simulate: false });
@@ -479,6 +486,7 @@ export class OptionBookModule {
       const gasLimit = (gasEstimate * 120n) / 100n;
 
       const tx = await contract.fillOrder(contractOrder, order.signature, ODETTE_REFERRER, { gasLimit });
+      opts.onSent?.(tx.hash);
       const receipt = await tx.wait();
 
       if (!receipt) {

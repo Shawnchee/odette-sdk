@@ -1129,7 +1129,12 @@ function registerWrites(grp: Command): void {
         }
 
         // 7+8: send + render receipt — broadcast against the FRESH order.
-        const receipt = await client.optionBook.fillOrder(freshOrder, collateralAmount);
+        const receipt = await client.optionBook.fillOrder(freshOrder, collateralAmount, {
+          onSent: (h) =>
+            process.stderr.write(
+              `Fill sent: ${h} (https://basescan.org/tx/${h}). Waiting for the receipt. Do not run fill again.\n`
+            ),
+        });
         // Best-effort spot fetch for USD-equivalent gas cost. Never blocks
         // success rendering — `fetchEthUsdSafe` swallows API failures.
         // The fill is mined: show its hash before any optional lookup, so it is
