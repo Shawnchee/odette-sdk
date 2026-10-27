@@ -1,6 +1,7 @@
 // Adapted from thetanuts-sdk cli/src/output.ts at 9e72aef1ab5c008ccc92352fa5048bd08c452ede.
 // MIT License, Copyright (c) 2026 Thetanuts Finance.
-// Changes: comments.
+// Changes: comments; fetchEthUsdSafe is bounded by a timeout (a stalled price
+// lookup hid the receipt of a completed fill, inviting a duplicate buy).
 import Table from 'cli-table3';
 import pc from 'picocolors';
 
@@ -312,25 +313,42 @@ export function render(data: unknown, opts: RenderOptions = {}): void {
 // Tx receipt rendering helpers
 // ---------------------------------------------------------------------------
 
+/** Longest wait for the optional ETH/USD lookup after a transaction is mined. */
+export const ETH_USD_TIMEOUT_MS = 3_000;
+
 /**
  * Best-effort ETH/USD spot fetch from the Odette market data API. Returns
- * `null` (never throws) on any failure — gas-cost USD is a nice-to-have, not
- * worth tanking a write command for. Caller should treat `null` as "skip the
- * feeUsd field gracefully".
+ * `null` (never throws) on any failure or after ETH_USD_TIMEOUT_MS — gas-cost
+ * USD is a nice-to-have. It runs after a fill or approval is already mined,
+ * so it must never delay the receipt: a hidden receipt invites a retry, and a
+ * retry buys a second position. The request is aborted on timeout.
  *
  * Structurally typed against the SDK's `client.api.getMarketData()` so we
  * don't have to drag in the full OdetteClient type here.
  */
 export async function fetchEthUsdSafe(
-  api: { getMarketData(): Promise<{ prices?: { ETH?: number } }> }
+  api: { getMarketData(opts?: { signal?: AbortSignal }): Promise<{ prices?: { ETH?: number } }> },
+  timeoutMs: number = ETH_USD_TIMEOUT_MS
 ): Promise<number | null> {
+  const controller = new AbortController();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<null>((resolve) => {
+    timer = setTimeout(() => {
+      controller.abort();
+      resolve(null);
+    }, timeoutMs);
+    // Not unref'd: if nothing else holds the event loop, an unref'd timer lets
+    // Node exit before it fires, and the receipt would never print.
+  });
   try {
-    const md = await api.getMarketData();
+    const md = await Promise.race([api.getMarketData({ signal: controller.signal }), timeout]);
     const eth = md?.prices?.ETH;
     if (typeof eth === 'number' && Number.isFinite(eth) && eth > 0) return eth;
     return null;
   } catch {
     return null;
+  } finally {
+    clearTimeout(timer);
   }
 }
 

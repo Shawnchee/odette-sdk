@@ -1132,6 +1132,9 @@ function registerWrites(grp: Command): void {
         const receipt = await client.optionBook.fillOrder(freshOrder, collateralAmount);
         // Best-effort spot fetch for USD-equivalent gas cost. Never blocks
         // success rendering — `fetchEthUsdSafe` swallows API failures.
+        // The fill is mined: show its hash before any optional lookup, so it is
+        // on screen even if the user interrupts. Never re-run a mined fill.
+        process.stderr.write(`Fill mined: ${receipt.hash} (https://basescan.org/tx/${receipt.hash})\n`);
         const ethUsd = await fetchEthUsdSafe(client.api);
         const fillEvent = extractOrderFilledEvent(receipt, freshPreview.optionBook);
         // Print the referrer the CHAIN recorded, and say so when it is not Odette's.

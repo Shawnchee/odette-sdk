@@ -152,11 +152,11 @@ export function parseFeed(body: unknown): FeedRead {
   return { orders, malformed };
 }
 
-/** GET the feed URL. Throws HTTP_ERROR on a network failure or a non-2xx status. */
-async function getFeed(url: string, doFetch: typeof fetch): Promise<Response> {
+/** GET the feed URL. Throws HTTP_ERROR on a network failure, an abort, or a non-2xx status. */
+async function getFeed(url: string, doFetch: typeof fetch, signal?: AbortSignal): Promise<Response> {
   let response: Response;
   try {
-    response = await doFetch(url, { headers: { accept: 'application/json' } });
+    response = await doFetch(url, { headers: { accept: 'application/json' }, ...(signal ? { signal } : {}) });
   } catch (error) {
     throw new OdetteError('HTTP_ERROR', `Order feed request failed: ${String(error)}. Check your network, or set feedUrl.`, error, { url });
   }
@@ -181,9 +181,11 @@ async function readFeedBody(response: Response, url: string): Promise<unknown> {
  * Market prices from the same feed body (`data.market_data`). Only numeric,
  * positive prices are returned; a missing asset is absent, never 0.
  */
-export async function fetchMarketData(opts: FeedOptions = {}): Promise<{ prices: Record<string, number> }> {
+export async function fetchMarketData(
+  opts: FeedOptions & { signal?: AbortSignal } = {}
+): Promise<{ prices: Record<string, number> }> {
   const url = opts.feedUrl ?? DEFAULT_FEED_URL;
-  const body = await readFeedBody(await getFeed(url, opts.fetch ?? globalThis.fetch), url);
+  const body = await readFeedBody(await getFeed(url, opts.fetch ?? globalThis.fetch, opts.signal), url);
   const md = isRecord(body) && isRecord(body['data']) && isRecord(body['data']['market_data']) ? body['data']['market_data'] : {};
   const prices: Record<string, number> = {};
   for (const [k, v] of Object.entries(md)) {

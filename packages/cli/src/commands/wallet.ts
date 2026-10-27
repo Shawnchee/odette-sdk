@@ -648,6 +648,7 @@ export function register(program: Command): void {
         if (!ok) process.exit(3);
 
         const receipt = await client.erc20.approve(tokenAddr, spender, amount);
+        process.stderr.write(`Approval mined: ${receipt.hash}\n`);
         const ethUsd = await fetchEthUsdSafe(client.api);
         render(
           buildTxReceiptPayload(receipt, ethUsd),

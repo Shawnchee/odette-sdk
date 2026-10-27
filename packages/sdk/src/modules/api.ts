@@ -41,8 +41,8 @@ export class APIModule {
     return fetchFeed(this.feedOptions());
   }
 
-  /** Market prices from the order feed. A missing asset is absent, never 0. */
-  async getMarketData(): Promise<{ prices: Record<string, number> }> {
-    return fetchMarketData(this.feedOptions());
+  /** Market prices from the order feed. A missing asset is absent, never 0. Pass a signal to bound it. */
+  async getMarketData(opts: { signal?: AbortSignal } = {}): Promise<{ prices: Record<string, number> }> {
+    return fetchMarketData({ ...this.feedOptions(), ...(opts.signal ? { signal: opts.signal } : {}) });
   }
 }
