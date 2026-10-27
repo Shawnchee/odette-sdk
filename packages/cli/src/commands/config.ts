@@ -2,7 +2,8 @@
 // MIT License, Copyright (c) 2026 Thetanuts Finance.
 // Changes: keys are chainId (8453 only), rpcUrl, privateKey. `referrer` is
 // refused (it is fixed); `show` reports the fixed referrer. Names. Config
-// errors exit 4.
+// errors exit 4. `--dry-run` never writes the file. `validate` never echoes
+// the key (ethers' error text contains it).
 import type { Command } from 'commander';
 import fs from 'node:fs';
 import { ethers } from 'ethers';
@@ -272,13 +273,17 @@ export function register(program: Command): void {
         }
 
         let address: string | undefined;
-        if (cfg.privateKey) {
+        if (cfg.privateKey !== undefined) {
+          // Check the shape ourselves and print a fixed message. ethers' error
+          // for an odd-length value echoes the whole value, i.e. the key.
+          if (typeof cfg.privateKey !== 'string' || !PRIVATE_KEY_REGEX.test(cfg.privateKey)) {
+            process.stderr.write('Private key invalid: expected a 0x-prefixed 64-character hex string.\n');
+            process.exit(4);
+          }
           try {
-            const w = new ethers.Wallet(cfg.privateKey);
-            address = w.address;
-          } catch (err) {
-            const msg = (err as Error).message ?? String(err);
-            process.stderr.write(`Private key invalid: ${msg}\n`);
+            address = new ethers.Wallet(cfg.privateKey).address;
+          } catch {
+            process.stderr.write('Private key invalid: not a usable secp256k1 key.\n');
             process.exit(4);
           }
         }

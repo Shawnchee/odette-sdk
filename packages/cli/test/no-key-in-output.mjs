@@ -57,4 +57,15 @@ check('config show masks the key', () => {
   assert.equal(j.privateKey, `0x…${key.slice(-4)}`);
 });
 
+check('config validate with a malformed key prints a fixed message, never the key', () => {
+  // An odd-length value (one stray character) made ethers echo the whole key.
+  for (const bad of [key + 'a', key + 'zz', key.slice(0, 40), 'not-a-key']) {
+    const p = writeConfig(dir, { version: 1, chainId: 8453, rpcUrl: 'https://mainnet.base.org', privateKey: bad }, 'bad-key.json');
+    const r = runCli(['--config', p, 'config', 'validate']);
+    assert.equal(r.code, 4, r.stderr);
+    assert.match(r.stderr, /^Private key invalid: expected a 0x-prefixed 64-character hex string\.$/m);
+    assert.ok(!(r.stdout + r.stderr).toLowerCase().includes(bare.slice(0, 40)), 'key material printed');
+  }
+});
+
 console.log(`# no-key-in-output: ${passed} passed`);
