@@ -14,7 +14,8 @@
 // - --approve-amount takes exact|max|<n>; an amount below the premium is a
 //   usage error. With --collateral, the default approval is that budget.
 // - check accepts --direction buy only (the CLI never sells or closes).
-// - fill --yes requires --collateral (no unattended max-size buy).
+// - fill --yes requires --collateral (no unattended max-size buy); an empty or
+//   malformed --collateral is a usage error, never "no budget".
 // - --type also takes RANGER and LINEAR_CALL; orders filters by product (a RANGER
 //   has isCall=true on chain but is not a call). JSON rows carry product and
 //   underlying. preview shows premium and maxPayout.
@@ -247,12 +248,19 @@ function computeCollateralAmount(
   client: GetClientResult['client'],
   flags: { collateral?: string }
 ): bigint | undefined {
-  const hasCollateral = flags.collateral !== undefined && flags.collateral !== '';
-  if (hasCollateral) {
-    const decimals = collateralDecimalsFromOrder(order, client);
-    return client.utils.toBigInt(flags.collateral!, decimals);
+  if (flags.collateral === undefined) return undefined;
+  // An explicitly empty value (`--collateral "$BUDGET"` with BUDGET unset) is
+  // NOT "no budget": upstream read it as omitted and filled the maximum size.
+  const usage = (message: string) => Object.assign(new Error(message), { exitCode: 2 });
+  if (flags.collateral.trim() === '') {
+    throw usage('--collateral is empty. Pass the USDC amount to spend, for example --collateral 5.');
   }
-  return undefined;
+  const decimals = collateralDecimalsFromOrder(order, client);
+  try {
+    return client.utils.toBigInt(flags.collateral, decimals);
+  } catch {
+    throw usage(`Invalid --collateral "${flags.collateral}". Pass a USDC amount, for example 5 or 2.5.`);
+  }
 }
 
 function collateralDecimalsFromOrder(
@@ -938,7 +946,7 @@ function registerWrites(grp: Command): void {
       try {
         // Without --collateral, fill buys the order's maximum size. Never do
         // that unattended: --yes must come with an explicit budget.
-        if (opts.yes && !opts.dryRun && (local.collateral === undefined || local.collateral === '')) {
+        if (opts.yes && !opts.dryRun && (local.collateral === undefined || local.collateral.trim() === '')) {
           const err = new Error(
             '--yes needs --collateral <usdc>. Without it, fill buys the maximum size of the order. ' +
               'Pass the USDC you want to spend, or drop --yes to confirm the size yourself.'

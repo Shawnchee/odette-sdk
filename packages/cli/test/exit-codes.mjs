@@ -148,4 +148,14 @@ check('saving a config does not chmod an existing directory', () => {
   assert.equal(statSync(join(d, 'config.json')).mode & 0o777, 0o600);
 });
 
+check('an empty or malformed --collateral is a usage error, never "no budget" (exit 2)', () => {
+  const env = { ODETTE_PRIVATE_KEY: key, STUB_TAKER_ALLOWANCE: '1000000000' };
+  for (const [cmd, val] of [['preview', ''], ['fill', ''], ['fill', '  '], ['fill', '1.2.3'], ['fill', 'abc']]) {
+    const r = runCli([...noCfg, cmd, ...PUT, '--collateral', val], { env });
+    assert.equal(r.code, 2, `${cmd} --collateral ${JSON.stringify(val)}: ${r.stderr}`);
+    assert.doesNotMatch(r.stderr, /Proceed with fill|Fill sent/);
+  }
+});
+
+
 console.log(`# exit-codes: ${passed} passed`);
