@@ -25,6 +25,12 @@ export type {
   OdetteRawOrderData,
   ContractOrder,
 } from './types.js';
+export { OdetteClient, type OdetteClientConfig } from './client.js';
+export { buildChainConfig, type OdetteChainConfig, type TokenConfig, type OptionImplementationInfo } from './chainConfig.js';
+export { OptionBookModule, MAX_FILL_GAS, type FillPreview, type CheckResult, type CheckOptions, type OrderFilledEvent } from './modules/optionBook.js';
+export { ERC20Module } from './modules/erc20.js';
+export { APIModule } from './modules/api.js';
+export { UtilsModule } from './modules/utils.js';
 export { toBigInt, fromBigInt } from './utils/decimals.js';
 export { toOdetteOrder } from './normalize.js';
 export {
