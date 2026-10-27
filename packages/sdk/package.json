@@ -1,0 +1,66 @@
+{
+  "name": "@thetanuts-finance/odette-sdk",
+  "version": "0.1.0",
+  "description": "Odette SDK. Read the Odette order book and buy Odette options on Base with your own signer.",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "odette-source": "./src/index.ts",
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "NOTICE.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "prepack": "node ../../scripts/copy-package-docs.mjs",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "odette",
+    "thetanuts",
+    "options",
+    "defi",
+    "base",
+    "sdk",
+    "typescript"
+  ],
+  "author": "Thetanuts Finance",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Shawnchee/odette-sdk.git",
+    "directory": "packages/sdk"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "ethers": "^6.16.0"
+  },
+  "peerDependencies": {
+    "ethers": "^6.16.0"
+  },
+  "devDependencies": {
+    "tsup": "8.5.1"
+  }
+}
