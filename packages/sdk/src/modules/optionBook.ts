@@ -12,7 +12,9 @@
 // - checkFill runs the pre-send checks; fillOrder refuses to send when one fails.
 // - The target OptionBook is the order's book when it is a known release
 //   (upstream :137-151 accepted only the configured book; today both are r12).
-// - fillOrder takes an optional onSent callback that gets the tx hash at broadcast.
+// - fillOrder takes an optional onSent callback that gets the tx hash at broadcast;
+//   a throwing callback is logged, never fatal. A re-priced replacement that
+//   succeeds returns its receipt; a cancelled one is TRANSACTION_CANCELLED.
 // Dropped: RFQ, claim, swapAndFillOrder, cancel, admin and callStatic helpers.
 
 import { Contract, Interface } from 'ethers';
@@ -491,8 +493,14 @@ export class OptionBookModule {
       const gasLimit = (gasEstimate * 120n) / 100n;
 
       const tx = await contract.fillOrder(contractOrder, order.signature, ODETTE_REFERRER, { gasLimit });
-      opts.onSent?.(tx.hash);
-      const receipt = await tx.wait();
+      // The fill is broadcast. A failing callback must not turn it into an
+      // error: the caller would think nothing was sent and could buy twice.
+      try {
+        opts.onSent?.(tx.hash);
+      } catch (error) {
+        this.client.logger.warn('onSent callback threw; still waiting for the receipt', { error, txHash: tx.hash });
+      }
+      const receipt = await this.waitForFill(tx);
 
       if (!receipt) {
         throw createError('CONTRACT_REVERT', 'Transaction failed - no receipt returned');
@@ -516,6 +524,33 @@ export class OptionBookModule {
     } catch (error) {
       this.client.logger.error('Failed to fill order', { error });
       throw mapContractError(error);
+    }
+  }
+
+  /**
+   * Wait for a sent fill. A wallet can speed it up (re-price) under a new hash:
+   * ethers then throws TRANSACTION_REPLACED even though the fill succeeded.
+   * Return the replacement's receipt in that case; report a cancellation
+   * (replaced by a transaction that is not this fill) as its own error.
+   */
+  private async waitForFill(tx: ContractTransactionResponse): Promise<TransactionReceipt | null> {
+    try {
+      return await tx.wait();
+    } catch (error) {
+      const e = error as { code?: string; cancelled?: boolean; receipt?: TransactionReceipt | null; reason?: string };
+      if (e.code !== 'TRANSACTION_REPLACED') throw error;
+      if (!e.cancelled && e.receipt && e.receipt.status === 1) {
+        this.client.logger.info('Fill was replaced by a re-priced transaction that succeeded', {
+          original: tx.hash,
+          replacement: e.receipt.hash,
+        });
+        return e.receipt;
+      }
+      throw createError(
+        'TRANSACTION_CANCELLED',
+        `The fill ${tx.hash} was replaced (${e.reason ?? 'cancelled'}) and did not go through. Check the wallet before trying again.`,
+        error
+      );
     }
   }
 

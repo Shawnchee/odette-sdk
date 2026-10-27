@@ -25,8 +25,9 @@ async function setup({ chain: over = {}, signer: sOpts = {} } = {}) {
   const chain = fakeChain({ now: NOW, ...over });
   const events = [];
   const errors = [];
+  const warns = [];
   const signer = minedSigner(chain.provider, TAKER, { events, ...sOpts });
-  const logger = { error: (msg, meta) => errors.push({ msg, meta }) };
+  const logger = { error: (msg, meta) => errors.push({ msg, meta }), warn: (msg) => warns.push(msg) };
   const client = new OdetteClient({ provider: chain.provider, signer, fetch: fetchStub, logger });
   const orders = await client.api.fetchOrders(NOW);
   for (const o of orders) {
@@ -35,7 +36,7 @@ async function setup({ chain: over = {}, signer: sOpts = {} } = {}) {
   }
   chain.setBalance(USDC.address, TAKER, 100_000000n);
   chain.setAllowance(USDC.address, TAKER, OPTION_BOOK_R12, 100_000000n);
-  return { signer, client, events, errors, put: orders.find((o) => o.product === 'PUT') };
+  return { signer, client, events, errors, warns, put: orders.find((o) => o.product === 'PUT') };
 }
 
 await check('fillOrder resolves the receipt; OrderFilled records ODETTE_REFERRER', async () => {
@@ -73,6 +74,24 @@ await check('gas 2,000,001 rejects with CHECK_FAILED and sends nothing', async (
     (e) => e instanceof OdetteError && e.code === 'CHECK_FAILED' && /Gas estimate 2000001 is above the 2000000 limit/.test(e.message)
   );
   assert.equal(signer.sent.length, 0);
+});
+
+await check('a throwing onSent callback does not fail a sent fill', async () => {
+  const { client, warns, put } = await setup();
+  const receipt = await client.optionBook.fillOrder(put, 25_000000n, { onSent: () => { throw new Error('callback bug'); } });
+  assert.equal(receipt.status, 1);
+  assert.match(warns.join(' '), /onSent callback threw/);
+});
+
+await check('a re-priced replacement that succeeds returns its receipt; a cancelled one is TRANSACTION_CANCELLED', async () => {
+  const { client } = await setup();
+  const ok = { hash: '0xreplacement', status: 1, logs: [] };
+  const sped = { hash: '0xorig', wait: async () => { throw Object.assign(new Error('replaced'), { code: 'TRANSACTION_REPLACED', cancelled: false, reason: 'repriced', receipt: ok }); } };
+  assert.equal(await client.optionBook['waitForFill'](sped), ok);
+  const cancelled = { hash: '0xorig', wait: async () => { throw Object.assign(new Error('replaced'), { code: 'TRANSACTION_REPLACED', cancelled: true, reason: 'cancelled', receipt: { status: 1 } }); } };
+  await assert.rejects(client.optionBook['waitForFill'](cancelled), (e) => e.code === 'TRANSACTION_CANCELLED' && /0xorig/.test(e.message));
+  const other = { hash: '0xorig', wait: async () => { throw Object.assign(new Error('boom'), { code: 'CALL_EXCEPTION' }); } };
+  await assert.rejects(client.optionBook['waitForFill'](other), /boom/);
 });
 
 console.log(`# fill-receipt: ${passed} passed`);

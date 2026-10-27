@@ -21,6 +21,7 @@ export type OdetteErrorCode =
   | 'SIZE_EXCEEDED'
   | 'SIGNER_REQUIRED'
   | 'CHECK_FAILED'
+  | 'TRANSACTION_CANCELLED'
   | 'UNKNOWN';
 
 /**
