@@ -1,6 +1,6 @@
 {
   "name": "@odette-fi/sdk",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Odette SDK. Read the Odette order book and buy Odette options on Base with your own signer.",
   "type": "module",
   "main": "./dist/index.cjs",

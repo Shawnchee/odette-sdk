@@ -3,6 +3,21 @@
 All notable changes to `@odette-fi/sdk` and `@odette-fi/cli`.
 Both packages share one version.
 
+## 0.1.1 — 2026-10-30
+
+### Fixed
+
+- CLI: `config set privateKey`, `wallet import` and `setup` reject a key that is not a
+  usable secp256k1 key (for example all zeros). A bad key no longer replaces a saved one.
+- CLI: `config validate` masks the RPC URL, on success and on error. It no longer prints
+  an API key that is part of the URL.
+- CLI: a config file that is valid JSON but not an object (`123`, `"x"`, `[]`, `null`)
+  now fails with exit 4. Before, `wallet create` could save over it with a broken file.
+- SDK: `erc20.getDecimals()` returns a `number`, as its type says. It returned a
+  `bigint`, so `utils.fromBigInt(value, decimals)` threw.
+- SDK: a logger or `onSent` callback that returns a rejected promise can no longer crash
+  the process after a fill is sent.
+
 ## 0.1.0 — 2026-10-30
 
 First release under the `@odette-fi` scope.

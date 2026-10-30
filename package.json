@@ -1,6 +1,6 @@
 {
   "name": "odette-sdk-monorepo",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Odette SDK and CLI. Trade Odette orders on Base from code or a terminal.",
   "license": "MIT",
