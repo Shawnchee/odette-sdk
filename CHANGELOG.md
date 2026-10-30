@@ -1,20 +1,13 @@
 # Changelog
 
-All notable changes to `@thetanuts-finance/odette-sdk` and `@thetanuts-finance/odette-cli`.
+All notable changes to `@odette-fi/sdk` and `@odette-fi/cli`.
 Both packages share one version.
 
-## 0.1.1 — 2026-10-28
+## 0.1.0 — 2026-10-30
 
-### Changed
+First release under the `@odette-fi` scope.
 
-- Each package has its own README on npm: the CLI page is the trading guide, the
-  SDK page is the developer guide. 0.1.0 showed the same README on both.
-
-## 0.1.0 — 2026-10-27
-
-First release.
-
-### SDK (`@thetanuts-finance/odette-sdk`)
+### SDK (`@odette-fi/sdk`)
 
 - `OdetteClient` for Base (8453). The referrer is fixed to Odette's address; the
   constructor refuses a `referrer` option.
@@ -30,7 +23,7 @@ First release.
   broadcast (`onSent`), handles a re-priced replacement, and checks the referrer the
   chain recorded.
 
-### CLI (`@thetanuts-finance/odette-cli`)
+### CLI (`@odette-fi/cli`)
 
 - `odette setup`, `wallet` (create, import, show, balance, allowance, approve,
   reset), `config`, `orders`, `check`, `preview`, `max-contracts` and `fill`.
@@ -39,6 +32,11 @@ First release.
 - `fill` runs the checks before any prompt, fetches the order again before sending,
   and asks again if the price moved. `--yes` needs `--collateral`.
 - `--dry-run` never sends a transaction and never changes the config file.
+
+### Docs
+
+- Each package has its own README on npm: the CLI page is the trading guide, the
+  SDK page is the developer guide.
 
 Parts are adapted from [thetanuts-sdk](https://github.com/Thetanuts-Finance/thetanuts-sdk)
 at `9e72aef`; see NOTICE.md.

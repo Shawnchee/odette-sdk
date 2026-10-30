@@ -3,7 +3,7 @@
 Buy Odette options on Base from your terminal: `odette`.
 
 Building a bot or an app instead? Use the SDK,
-[`@thetanuts-finance/odette-sdk`](https://www.npmjs.com/package/@thetanuts-finance/odette-sdk).
+[`@odette-fi/sdk`](https://www.npmjs.com/package/@odette-fi/sdk).
 
 Odette runs on Thetanuts Finance contracts on Base. You sign every trade with your
 own wallet. No trade goes through a server: `odette` only reads the public order
@@ -28,7 +28,7 @@ cash-settled in USDC at expiry, so there is nothing to close.
 ## Install
 
 ```sh
-npm install -g @thetanuts-finance/odette-cli
+npm install -g @odette-fi/cli
 ```
 
 ## Set up your wallet (once)

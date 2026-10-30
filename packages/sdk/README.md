@@ -3,7 +3,7 @@
 Buy Odette options on Base from your own code: trading bots, apps, scripts and AI agents.
 
 Just want to trade from a terminal? Use the CLI,
-[`@thetanuts-finance/odette-cli`](https://www.npmjs.com/package/@thetanuts-finance/odette-cli).
+[`@odette-fi/cli`](https://www.npmjs.com/package/@odette-fi/cli).
 
 The SDK reads the public order list, then calls the OptionBook contract on Base
 (`fillOrder`) with your own signer. You don't need to know the contract: the SDK
@@ -17,7 +17,7 @@ Odette options are cash-settled in USDC at expiry.
 ## Install
 
 ```sh
-npm install @thetanuts-finance/odette-sdk ethers
+npm install @odette-fi/sdk ethers
 ```
 
 Node.js 20 or newer, ethers v6. ESM and CommonJS both work.
@@ -26,7 +26,7 @@ Node.js 20 or newer, ethers v6. ESM and CommonJS both work.
 
 ```ts
 import { JsonRpcProvider, Wallet } from 'ethers';
-import { OdetteClient } from '@thetanuts-finance/odette-sdk';
+import { OdetteClient } from '@odette-fi/sdk';
 
 const provider = new JsonRpcProvider('https://mainnet.base.org');
 const signer = new Wallet(process.env.ODETTE_PRIVATE_KEY!, provider);

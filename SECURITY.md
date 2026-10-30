@@ -2,8 +2,8 @@
 
 ## Reporting a vulnerability
 
-If you find a security issue in `@thetanuts-finance/odette-sdk` or
-`@thetanuts-finance/odette-cli`, report it privately:
+If you find a security issue in `@odette-fi/sdk` or
+`@odette-fi/cli`, report it privately:
 **[Report a vulnerability](https://github.com/Shawnchee/odette-sdk/security/advisories/new)**
 (the repo's Security tab → "Report a vulnerability").
 

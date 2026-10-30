@@ -4,8 +4,8 @@ Trade Odette options on Base from a terminal or from your own code.
 
 | Package | For | Install |
 |---|---|---|
-| [`@thetanuts-finance/odette-cli`](https://www.npmjs.com/package/@thetanuts-finance/odette-cli) | Traders: the `odette` command | `npm install -g @thetanuts-finance/odette-cli` |
-| [`@thetanuts-finance/odette-sdk`](https://www.npmjs.com/package/@thetanuts-finance/odette-sdk) | Builders: bots, apps, scripts, AI agents | `npm install @thetanuts-finance/odette-sdk ethers` |
+| [`@odette-fi/cli`](https://www.npmjs.com/package/@odette-fi/cli) | Traders: the `odette` command | `npm install -g @odette-fi/cli` |
+| [`@odette-fi/sdk`](https://www.npmjs.com/package/@odette-fi/sdk) | Builders: bots, apps, scripts, AI agents | `npm install @odette-fi/sdk ethers` |
 
 - **CLI guide:** [packages/cli/README.md](packages/cli/README.md): wallet setup, browsing orders, and your first trade.
 - **SDK guide:** [packages/sdk/README.md](packages/sdk/README.md): quick start and main methods.
