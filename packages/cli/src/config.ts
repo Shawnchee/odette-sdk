@@ -70,16 +70,21 @@ export function loadConfig(configPath?: string): Config | null {
   } else {
     raw = fs.readFileSync(p, 'utf8');
   }
-  let parsed: Config;
+  let parsed: unknown;
   try {
-    parsed = JSON.parse(raw) as Config;
+    parsed = JSON.parse(raw);
   } catch {
     throw new ConfigError(`Config file ${p} is not valid JSON. Fix it, or run \`odette setup\`.`);
+  }
+  // Valid JSON is not enough: `123`, `"x"`, `[]` or `null` would reach
+  // `wallet create` / `import`, which spread it and save a corrupted file.
+  if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new ConfigError(`Config file ${p} must be a JSON object. Fix it, or run \`odette setup\`.`);
   }
   // The Odette referrer is a constant. A `referrer` key means the file was
   // written for another tool (or edited by hand); refuse it rather than
   // silently ignore an address the user thinks is in effect.
-  if (parsed !== null && typeof parsed === 'object' && 'referrer' in parsed) {
+  if ('referrer' in parsed) {
     throw new ConfigError(
       `Config file ${p} has a "referrer" key. The Odette referrer is fixed and cannot be configured. Remove the key.`
     );
@@ -107,7 +112,7 @@ export function loadConfig(configPath?: string): Config | null {
       // best-effort; never block load on a stat failure
     }
   }
-  return parsed;
+  return parsed as Config;
 }
 
 export function saveConfig(cfg: Config, configPath?: string): void {

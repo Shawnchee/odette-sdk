@@ -4,7 +4,7 @@
 // cli/tests/exitCodes.test.ts. Network is stubbed; nothing is sent.
 
 import assert from 'node:assert/strict';
-import { chmodSync, mkdirSync, statSync } from 'node:fs';
+import { chmodSync, mkdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { Interface, Wallet } from 'ethers';
 import { runCli, tempDir, writeConfig } from './helpers/run-cli.mjs';
@@ -52,6 +52,19 @@ check('a config file with a referrer key exits 4', () => {
     const r = runCli(['--config', p, ...cmd]);
     assert.equal(r.code, 4, `${cmd.join(' ')}: ${r.stderr}`);
     assert.match(r.stderr, /has a "referrer" key\. The Odette referrer is fixed/);
+  }
+});
+
+check('a config file that is valid JSON but not an object exits 4 and is not rewritten', () => {
+  for (const [i, value] of [123, 'x', [], null].entries()) {
+    const p = writeConfig(tempDir(), value, `notobj${i}.json`);
+    const before = readFileSync(p, 'utf8');
+    for (const cmd of [['wallet', 'show'], ['config', 'show'], ['wallet', 'create', '--force']]) {
+      const r = runCli(['--config', p, ...cmd]);
+      assert.equal(r.code, 4, `${before} / ${cmd.join(' ')}: ${r.stderr}`);
+      assert.match(r.stderr, /must be a JSON object\. Fix it, or run `odette setup`\./);
+      assert.equal(readFileSync(p, 'utf8'), before, `${before} / ${cmd.join(' ')}: file changed`);
+    }
   }
 });
 
@@ -178,6 +191,28 @@ check('config set rpcUrl requires https; config show and set hide the URL path a
   assert.match(JSON.parse(show.stdout).rpcUrl, /^https:\/\/base-mainnet\.example\.com\/… \(path and query hidden\)$/);
   assert.equal(runCli(['--config', p, 'config', 'set', 'rpcUrl', 'https://mainnet.base.org']).code, 0);
   assert.equal(JSON.parse(runCli(['--config', p, '-o', 'json', 'config', 'show']).stdout).rpcUrl, 'https://mainnet.base.org');
+});
+
+check('config set privateKey - refuses a key that passes the regex but is not on the curve, and keeps the old key', () => {
+  const p = writeConfig(tempDir(), { version: 1, chainId: 8453, rpcUrl: 'https://mainnet.base.org', privateKey: key });
+  const ORDER_N = '0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141'; // secp256k1 order
+  for (const bad of ['0x' + '0'.repeat(64), ORDER_N, '0x' + 'f'.repeat(64)]) {
+    const r = runCli(['--config', p, 'config', 'set', 'privateKey', '-'], { input: bad });
+    assert.equal(r.code, 2, r.stderr);
+    assert.match(r.stderr, /privateKey is not a usable secp256k1 key\. Check the key and try again\./);
+    assert.equal(JSON.parse(readFileSync(p, 'utf8')).privateKey, key, 'old key was overwritten');
+  }
+  const good = Wallet.createRandom().privateKey; // control: a valid key is still accepted
+  assert.equal(runCli(['--config', p, 'config', 'set', 'privateKey', '-'], { input: good }).code, 0);
+  assert.equal(JSON.parse(readFileSync(p, 'utf8')).privateKey, good);
+});
+
+check('wallet import rejects a zero key at the prompt and saves nothing', () => {
+  const p = writeConfig(tempDir(), { version: 1, chainId: 8453, rpcUrl: 'https://mainnet.base.org' });
+  const r = runCli(['--config', p, 'wallet', 'import'], { input: '0x' + '0'.repeat(64) + '\n' });
+  assert.notEqual(r.signal, 'SIGTERM', 'timed out');
+  assert.match(r.stderr, /not a usable secp256k1 key/);
+  assert.equal(JSON.parse(readFileSync(p, 'utf8')).privateKey, undefined, 'a bad key was saved');
 });
 
 console.log(`# exit-codes: ${passed} passed`);

@@ -79,6 +79,13 @@ async function promptPrivateKey(prompt: string): Promise<string> {
       process.stderr.write('Invalid private key. Expect a 0x-prefixed 64-char hex string.\n');
       continue;
     }
+    // The regex passes zero and values >= the curve order. ethers rejects them.
+    try {
+      new ethers.Wallet(pk);
+    } catch {
+      process.stderr.write('Invalid private key. It is not a usable secp256k1 key. Check the key and try again.\n');
+      continue;
+    }
     return pk;
   }
 }
@@ -535,6 +542,8 @@ export function register(program: Command): void {
           if (!ok) process.exit(3);
         }
         const pk = await promptPrivateKey('Paste your private key (input hidden)');
+        // Build the wallet before the save, so a bad key never replaces a good one.
+        const address = new ethers.Wallet(pk).address;
         const cfg: Config = existing
           ? { ...existing, privateKey: pk }
           : {
@@ -544,7 +553,6 @@ export function register(program: Command): void {
               privateKey: pk,
             };
         saveConfig(cfg, path);
-        const address = new ethers.Wallet(pk).address;
         render(
           { imported: true, address, path },
           { output: opts.output, noColor: !opts.color }

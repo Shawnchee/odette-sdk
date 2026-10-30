@@ -10,6 +10,7 @@
 //        and moves its price 1% up or down (Odette re-quotes about once a minute).
 //      STUB_SENT_FILE: a signed raw transaction is decoded and written here as
 //        JSON { to, referrer, numContracts }, then refused. Nothing is broadcast.
+//      STUB_RPC_FAIL=1: every JSON-RPC request gets HTTP 503 (an RPC that is down).
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { AbiCoder, FetchRequest, Interface, Transaction, getAddress, toBeHex } from 'ethers';
@@ -106,6 +107,9 @@ function answer(method, params) {
 }
 
 FetchRequest.registerGetUrl(async (req) => {
+  if (process.env.STUB_RPC_FAIL === '1') {
+    return { statusCode: 503, statusMessage: 'Service Unavailable', headers: {}, body: new TextEncoder().encode('down') };
+  }
   const payload = JSON.parse(Buffer.from(req.body).toString('utf8'));
   const one = (p) => {
     try { return { jsonrpc: '2.0', id: p.id, result: answer(p.method, p.params ?? []) }; }

@@ -69,4 +69,18 @@ check('config validate with a malformed key prints a fixed message, never the ke
   }
 });
 
+check('config validate never prints the RPC URL path (API key), on success or failure', () => {
+  const secret = 'SECRETKEY123';
+  const p = writeConfig(dir, { version: 1, chainId: 8453, rpcUrl: `https://rpc.example.invalid/v2/${secret}` }, 'rpc-key.json');
+  const ok = runCli(['--config', p, '-o', 'json', 'config', 'validate']);
+  assert.equal(ok.code, 0, ok.stderr);
+  assert.equal(JSON.parse(ok.stdout).rpcUrl, 'https://rpc.example.invalid/… (path and query hidden)');
+  assert.ok(!(ok.stdout + ok.stderr).includes(secret), 'success path printed the RPC key');
+  const down = runCli(['--config', p, 'config', 'validate'], { env: { STUB_RPC_FAIL: '1' } });
+  assert.equal(down.code, 4, down.stderr);
+  assert.match(down.stderr, /^RPC unreachable at https:\/\/rpc\.example\.invalid\/… \(path and query hidden\): SERVER_ERROR\./m);
+  assert.ok(!(down.stdout + down.stderr).includes(secret), 'failure path printed the RPC key');
+  assert.ok(!(down.stdout + down.stderr).includes('requestUrl'), 'failure path printed the raw ethers message');
+});
+
 console.log(`# no-key-in-output: ${passed} passed`);

@@ -17,7 +17,7 @@ import {
 } from '../config.js';
 import { DEFAULT_CHAIN_ID, DEFAULT_RPC_URL } from '../defaults.js';
 import { getGlobalOpts } from '../options.js';
-import { render, renderError, redactSecrets } from '../output.js';
+import { render, renderError } from '../output.js';
 
 /**
  * Read all bytes from stdin and return as a UTF-8 string. Used by
@@ -111,6 +111,16 @@ function parseValue(key: AllowedKey, value: string): Config[AllowedKey] {
   if (key === 'privateKey') {
     if (!PRIVATE_KEY_REGEX.test(value)) {
       throw Object.assign(new Error('privateKey must be a 0x-prefixed 64-char hex string'), { exitCode: 2 });
+    }
+    // The regex passes zero and values >= the curve order. ethers rejects them.
+    // Print a fixed message: ethers' error text can contain the value.
+    try {
+      new ethers.Wallet(value);
+    } catch {
+      throw Object.assign(
+        new Error('privateKey is not a usable secp256k1 key. Check the key and try again.'),
+        { exitCode: 2 }
+      );
     }
     return value;
   }
@@ -301,8 +311,12 @@ export function register(program: Command): void {
             process.exit(4);
           }
         } catch (err) {
-          const msg = (err as Error).message ?? String(err);
-          process.stderr.write(`RPC unreachable: ${redactSecrets(msg)}\n`);
+          // Never print ethers' message: it embeds the request URL, and hosted
+          // RPC URLs carry the API key in the path. Print the masked URL and
+          // the ethers error code only.
+          const code = (err as { code?: unknown }).code;
+          const reason = typeof code === 'string' && /^[A-Z_]+$/.test(code) ? code : 'request failed';
+          process.stderr.write(`RPC unreachable at ${maskRpcUrl(rpcUrl)}: ${reason}. Check rpcUrl and try again.\n`);
           process.exit(4);
         }
 
@@ -326,7 +340,7 @@ export function register(program: Command): void {
           {
             path,
             chainId,
-            rpcUrl,
+            rpcUrl: maskRpcUrl(rpcUrl),
             address: address ?? '<no signer>',
             valid: true,
           },

@@ -40,6 +40,13 @@ async function promptPrivateKey(): Promise<string> {
       process.stderr.write('Invalid private key. Expect a 0x-prefixed 64-char hex string.\n');
       continue;
     }
+    // The regex passes zero and values >= the curve order. ethers rejects them.
+    try {
+      new ethers.Wallet(pk);
+    } catch {
+      process.stderr.write('Invalid private key. It is not a usable secp256k1 key. Check the key and try again.\n');
+      continue;
+    }
     return pk;
   }
 }
