@@ -9,7 +9,7 @@ import fs from 'node:fs';
 import type { Command } from 'commander';
 import prompts from 'prompts';
 import { ethers } from 'ethers';
-import type { OdetteClient } from '@thetanuts-finance/odette-sdk';
+import type { OdetteClient } from '@odette-fi/sdk';
 import { getGlobalOpts } from '../options.js';
 import { getClient, requireSigner, type GetClientResult } from '../client.js';
 import { render, renderError, redactSecrets, buildTxReceiptPayload, fetchEthUsdSafe } from '../output.js';

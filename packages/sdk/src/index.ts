@@ -1,5 +1,5 @@
 // Copyright (c) 2026 Thetanuts Finance. MIT License.
-// Public entry point of @thetanuts-finance/odette-sdk.
+// Public entry point of @odette-fi/sdk.
 
 export {
   BASE_CHAIN_ID,

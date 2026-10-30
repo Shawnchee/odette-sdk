@@ -3,7 +3,7 @@
 // Changes: adds findSameInstrument. Odette re-signs every order about once a
 // minute (2026-10-27: all 400 instruments re-signed within 75 s, 397 with a new
 // price), so a signature match aborts most interactive fills.
-import type { OdetteOrder as OrderWithSignature } from '@thetanuts-finance/odette-sdk';
+import type { OdetteOrder as OrderWithSignature } from '@odette-fi/sdk';
 
 /**
  * Find the exact signed order in a refreshed book.

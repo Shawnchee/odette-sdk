@@ -32,7 +32,7 @@ import {
   MARKETS,
   MARKET_DAYS,
   MIN_PREMIUM_USDC,
-} from '@thetanuts-finance/odette-sdk';
+} from '@odette-fi/sdk';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const UPSTREAM = `https://raw.githubusercontent.com/Thetanuts-Finance/thetanuts-sdk/${process.env.DRIFT_UPSTREAM_REF ?? 'main'}`;

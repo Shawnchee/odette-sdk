@@ -51,7 +51,7 @@ step('install both tarballs into a fresh project', () => {
   execFileSync('mkdir', ['-p', app]);
   writeFileSync(join(app, 'package.json'), JSON.stringify({ name: 'odette-smoke-app', private: true, type: 'module' }));
   run(npm, ['install', '--no-audit', '--no-fund', tarballs.sdk, tarballs.cli], app);
-  return readdirSync(join(app, 'node_modules', '@thetanuts-finance')).join(', ');
+  return readdirSync(join(app, 'node_modules', '@odette-fi')).join(', ');
 });
 
 const bin = join(app, 'node_modules', '.bin', 'odette');
@@ -66,7 +66,7 @@ step('odette --help lists the Odette commands', () => {
 
 step('ESM import of the SDK', () => {
   writeFileSync(join(app, 'esm.mjs'), `
-    import { OdetteClient, ODETTE_REFERRER, OPTION_BOOK_R12 } from '@thetanuts-finance/odette-sdk';
+    import { OdetteClient, ODETTE_REFERRER, OPTION_BOOK_R12 } from '@odette-fi/sdk';
     import { JsonRpcProvider } from 'ethers';
     const c = new OdetteClient({ provider: new JsonRpcProvider('https://mainnet.base.org', 8453, { staticNetwork: true }) });
     if (c.referrer !== ODETTE_REFERRER || c.optionBook.contractAddress !== OPTION_BOOK_R12) process.exit(1);
@@ -76,7 +76,7 @@ step('ESM import of the SDK', () => {
 
 step('CJS require of the SDK', () => {
   writeFileSync(join(app, 'cjs.cjs'), `
-    const { ODETTE_REFERRER, contractsForUsdc } = require('@thetanuts-finance/odette-sdk');
+    const { ODETTE_REFERRER, contractsForUsdc } = require('@odette-fi/sdk');
     if (typeof contractsForUsdc !== 'function') process.exit(1);
     console.log(ODETTE_REFERRER);`);
   return run(process.execPath, ['cjs.cjs'], app).trim();
@@ -84,7 +84,7 @@ step('CJS require of the SDK', () => {
 
 step('TypeScript consumer typechecks against the published types', () => {
   writeFileSync(join(app, 'consumer.ts'), `
-    import { OdetteClient, type OdetteOrder, type FillPreview } from '@thetanuts-finance/odette-sdk';
+    import { OdetteClient, type OdetteOrder, type FillPreview } from '@odette-fi/sdk';
     import { JsonRpcProvider } from 'ethers';
     export async function demo(): Promise<FillPreview | undefined> {
       const client = new OdetteClient({ provider: new JsonRpcProvider('https://mainnet.base.org') });

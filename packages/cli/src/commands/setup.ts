@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import type { Command } from 'commander';
 import prompts from 'prompts';
 import { ethers } from 'ethers';
-import { ODETTE_REFERRER } from '@thetanuts-finance/odette-sdk';
+import { ODETTE_REFERRER } from '@odette-fi/sdk';
 import { defaultConfigPath, loadConfig, saveConfig, stopForDryRun, type Config } from '../config.js';
 import { DEFAULT_CHAIN_ID, DEFAULT_RPC_URL } from '../defaults.js';
 import { getGlobalOpts } from '../options.js';

@@ -1,6 +1,6 @@
 // Adapted from thetanuts-sdk cli/src/bookEligibility.ts at 9e72aef1ab5c008ccc92352fa5048bd08c452ede.
 // MIT License, Copyright (c) 2026 Thetanuts Finance.
-import type { OdetteOrder as OrderWithSignature } from '@thetanuts-finance/odette-sdk';
+import type { OdetteOrder as OrderWithSignature } from '@odette-fi/sdk';
 
 /**
  * The CLI currently supports cash-settled, USDC-collateralized OptionBook

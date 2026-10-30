@@ -29,7 +29,7 @@ import {
   OPTION_BOOK_ABI,
   type CheckResult,
   type OdetteOrder as OrderWithSignature,
-} from '@thetanuts-finance/odette-sdk';
+} from '@odette-fi/sdk';
 import { getGlobalOpts } from '../options.js';
 import { getClient, requireSigner, type GetClientResult } from '../client.js';
 import { render, renderError, buildTxReceiptPayload, fetchEthUsdSafe } from '../output.js';

@@ -5,7 +5,7 @@
  * Single source of truth for CLI defaults. Bump these here, not at call sites.
  *
  * The CLI is Base-only by design (chainId 8453). Keep this aligned with the
- * SDK (`@thetanuts-finance/odette-sdk`) — see `src/chain.ts` there for
+ * SDK (`@odette-fi/sdk`) — see `src/chain.ts` there for
  * addresses and tokens.
  *
  * The default RPC is PUBLIC and shared — fine for read-only smoke and

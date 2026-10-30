@@ -2,7 +2,7 @@
 # Pattern and pinned actions from thetanuts-sdk .github/workflows/publish.yml.
 # Runs when a GitHub release is published. The `npm-publish` environment must
 # have required reviewers set in repo settings: that is the manual approval.
-# Needs the NPM_TOKEN secret (an npm automation token for the thetanuts-finance org).
+# Needs the NPM_TOKEN secret (an npm granular token with publish rights to the @odette-fi scope).
 # --provenance needs a PUBLIC repository (it is public).
 name: Publish Packages
 
@@ -27,7 +27,7 @@ jobs:
         with:
           node-version: '22'
           registry-url: 'https://registry.npmjs.org'
-          scope: '@thetanuts-finance'
+          scope: '@odette-fi'
           cache: npm
 
       - name: Install dependencies
@@ -39,7 +39,7 @@ jobs:
           TAG="${GITHUB_REF_NAME#v}"
           SDK=$(node -p "require('./packages/sdk/package.json').version")
           CLI=$(node -p "require('./packages/cli/package.json').version")
-          DEP=$(node -p "require('./packages/cli/package.json').dependencies['@thetanuts-finance/odette-sdk']")
+          DEP=$(node -p "require('./packages/cli/package.json').dependencies['@odette-fi/sdk']")
           echo "tag=$TAG sdk=$SDK cli=$CLI cli->sdk=$DEP"
           test "$TAG" = "$SDK" && test "$TAG" = "$CLI" && test "$DEP" = "$SDK"
 

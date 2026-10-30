@@ -5,7 +5,7 @@
 // no --private-key flag (env or config only); RPC URL errors never print the
 // URL path or query (they can hold an API key).
 import { ethers } from 'ethers';
-import { OdetteClient, ODETTE_REFERRER } from '@thetanuts-finance/odette-sdk';
+import { OdetteClient, ODETTE_REFERRER } from '@odette-fi/sdk';
 import type { OptionValues } from 'commander';
 import { loadConfig, ConfigError, type Config } from './config.js';
 import { DEFAULT_CHAIN_ID, DEFAULT_RPC_URL } from './defaults.js';

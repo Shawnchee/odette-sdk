@@ -2,7 +2,7 @@
 // MIT License, Copyright (c) 2026 Thetanuts Finance.
 // Changes: Odette has no RFQ. Where upstream recommends `rfq`, this answers
 // `none` with prose; commands are `odette preview`; the referrer is Odette's.
-import type { OdetteOrder as OrderWithSignature } from '@thetanuts-finance/odette-sdk';
+import type { OdetteOrder as OrderWithSignature } from '@odette-fi/sdk';
 import { ORDER_PRICE_DECIMALS } from './bookEligibility.js';
 import {
   findMatchingOrders,

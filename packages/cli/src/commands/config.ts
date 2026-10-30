@@ -7,7 +7,7 @@
 import type { Command } from 'commander';
 import fs from 'node:fs';
 import { ethers } from 'ethers';
-import { ODETTE_REFERRER } from '@thetanuts-finance/odette-sdk';
+import { ODETTE_REFERRER } from '@odette-fi/sdk';
 import {
   defaultConfigPath,
   loadConfig,
