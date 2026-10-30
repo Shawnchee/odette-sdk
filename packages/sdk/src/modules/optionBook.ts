@@ -25,6 +25,7 @@ import { OPTION_BOOK_ABI } from '../abi/optionBook.js';
 import { ERC20_ABI } from '../abi/erc20.js';
 import { BASE_CHAIN_ID, KNOWN_OPTION_BOOKS, ODETTE_REFERRER, USDC } from '../chain.js';
 import { createError, mapContractError } from '../errors.js';
+import { isThenable } from '../logger.js';
 import {
   checkSize,
   collateralForContracts,
@@ -496,7 +497,12 @@ export class OptionBookModule {
       // The fill is broadcast. A failing callback must not turn it into an
       // error: the caller would think nothing was sent and could buy twice.
       try {
-        opts.onSent?.(tx.hash);
+        const sent: unknown = opts.onSent?.(tx.hash);
+        if (isThenable(sent)) {
+          Promise.resolve(sent).catch((error: unknown) => {
+            this.client.logger.warn('onSent callback rejected; the fill was still sent', { error, txHash: tx.hash });
+          });
+        }
       } catch (error) {
         this.client.logger.warn('onSent callback threw; still waiting for the receipt', { error, txHash: tx.hash });
       }

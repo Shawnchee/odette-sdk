@@ -23,7 +23,7 @@ export function toOdetteOrder(
     maker: o.maker,
     taker: ZeroAddress, // Odette doesn't have taker
     option: '', // Option address not provided in API, will be created on fill
-    isBuyer: !o.isLong, // isLong=true means maker sells, so taker buys
+    isBuyer: !o.isLong, // isLong=false means the maker sells, so the taker buys
     numContracts: 0n, // the taker sets numContracts at fill time
     price: o.price,
     expiry: o.expiry,

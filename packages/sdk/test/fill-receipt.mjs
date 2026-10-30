@@ -108,4 +108,30 @@ await check('a logger that throws on every call cannot fail a mined fill', async
   assert.equal(receipt.status, 1);
 });
 
+await check('an async logger and an async onSent that reject cause no unhandled rejection', async () => {
+  const unhandled = [];
+  const onUnhandled = (reason) => unhandled.push(reason);
+  process.on('unhandledRejection', onUnhandled);
+  try {
+    const chain = fakeChain({ now: NOW });
+    const signer = minedSigner(chain.provider, TAKER, { events: [] });
+    const reject = async () => { throw new Error('async logger bug'); };
+    const warns = [];
+    const logger = { debug: reject, info: reject, error: reject, warn: async (msg) => { warns.push(msg); throw new Error('async logger bug'); } };
+    const client = new OdetteClient({ provider: chain.provider, signer, fetch: fetchStub, logger });
+    const [put] = (await client.api.fetchOrders(NOW)).filter((o) => o.product === 'PUT');
+    chain.setAllowance(USDC.address, put.order.maker, OPTION_BOOK_R12, 1_000_000_000000n);
+    chain.setBalance(USDC.address, put.order.maker, 1_000_000_000000n);
+    chain.setBalance(USDC.address, TAKER, 100_000000n);
+    chain.setAllowance(USDC.address, TAKER, OPTION_BOOK_R12, 100_000000n);
+    const receipt = await client.optionBook.fillOrder(put, 25_000000n, { onSent: async () => { throw new Error('async callback bug'); } });
+    assert.equal(receipt.status, 1);
+    await new Promise((r) => setTimeout(r, 20));
+    assert.deepEqual(unhandled, []);
+    assert.match(warns.join(' '), /onSent callback rejected/);
+  } finally {
+    process.off('unhandledRejection', onUnhandled);
+  }
+});
+
 console.log(`# fill-receipt: ${passed} passed`);

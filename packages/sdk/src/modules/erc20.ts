@@ -287,7 +287,8 @@ export class ERC20Module {
 
     try {
       const contract = this.getReadContract(token);
-      const decimals = await contract.decimals();
+      // ethers v6 decodes uint8 as bigint. Convert once so callers get a number.
+      const decimals = Number(await contract.decimals());
 
       // Cache the result
       this.decimalsCache.set(token.toLowerCase(), decimals);

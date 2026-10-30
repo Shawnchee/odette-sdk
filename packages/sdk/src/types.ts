@@ -52,7 +52,7 @@ export interface Order {
   taker: string;
   /** Option contract address (empty before fill, populated after) */
   option: string;
-  /** Whether maker is buyer (true) or seller (false) from taker's perspective */
+  /** True when the taker buys (the maker's order has isLong=false). False when the taker sells. */
   isBuyer: boolean;
   /** Number of contracts */
   numContracts: bigint;

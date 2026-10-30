@@ -75,12 +75,20 @@ export class Logger {
     this.call('error', msg, meta);
   }
 
-  /** Logging is best-effort: a throwing logger must never change the outcome. */
+  /** Logging is best-effort: a throwing or rejecting logger must never change the outcome. */
   private call(level: keyof OdetteLogger, msg: string, meta?: unknown): void {
     try {
-      this.logger[level]?.(msg, meta);
+      const result: unknown = this.logger[level]?.(msg, meta);
+      // An async logger that rejects would be an unhandled rejection, which
+      // exits Node after a fill is broadcast. Swallow it here.
+      if (isThenable(result)) Promise.resolve(result).catch(() => undefined);
     } catch {
       // ignore
     }
   }
+}
+
+/** True when the value has a callable `then`, as a Promise does. */
+export function isThenable(value: unknown): value is PromiseLike<unknown> {
+  return typeof (value as { then?: unknown } | null | undefined)?.then === 'function';
 }
