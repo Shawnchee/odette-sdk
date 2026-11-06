@@ -25,7 +25,7 @@ export interface OdetteClientConfig {
   provider: Provider;
   /** Required for fills and approvals. */
   signer?: Signer;
-  /** Default false. CALL_SPREAD and PUT_SPREAD stay hidden unless true. */
+  /** Default true. Set false to hide CALL_SPREAD and PUT_SPREAD. */
   enableSpreads?: boolean;
   /** Default: the Thetanuts order feed the Odette web app reads. */
   feedUrl?: string;
@@ -66,7 +66,7 @@ export class OdetteClient {
   /** Order feed URL */
   public readonly feedUrl: string;
 
-  /** True when the hidden spread products are on */
+  /** True (the default) when CALL_SPREAD and PUT_SPREAD are listed */
   public readonly enableSpreads: boolean;
 
   /** fetch implementation for the feed (undefined = globalThis.fetch) */
@@ -91,7 +91,7 @@ export class OdetteClient {
     this.signer = config.signer;
     this.logger = new Logger(config.logger ?? noopLogger);
     this.feedUrl = config.feedUrl ?? DEFAULT_FEED_URL;
-    this.enableSpreads = config.enableSpreads === true;
+    this.enableSpreads = config.enableSpreads !== false;
     this.fetch = config.fetch;
     this.chainConfig = buildChainConfig({ enableSpreads: this.enableSpreads });
 

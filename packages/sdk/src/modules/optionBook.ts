@@ -226,8 +226,8 @@ export class OptionBookModule {
 
   /**
    * Re-derive the order from its signed fields with this client's product
-   * settings. Refuses a hidden product (CALL_SPREAD / PUT_SPREAD unless
-   * enableSpreads) and replaces caller-supplied labels (product, underlying,
+   * settings. Refuses a hidden product (CALL_SPREAD / PUT_SPREAD when
+   * enableSpreads is false) and replaces caller-supplied labels (product, underlying,
    * optionBook) with the ones the implementation and price feed imply.
    */
   private listed(order: OdetteOrder): OdetteOrder {

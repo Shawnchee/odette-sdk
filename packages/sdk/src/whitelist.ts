@@ -19,7 +19,12 @@ export const IMPLEMENTATIONS: Readonly<Record<ProductKind, string>> = {
   PUT_SPREAD: '0x02Fe0d9635e0139DBB3768a5d5Db404Fd84d9134',
 };
 
-/** Products that are ported but off unless `enableSpreads` is true. */
+/**
+ * The two spread products. The Odette web app lists them in its Chain view
+ * (app.js filterOrdersByAssetAndType 'directional' adds isSpreadOrder under
+ * ODETTE_V2, config.js:343), so they are on by default. `enableSpreads: false`
+ * hides them.
+ */
 export const HIDDEN_PRODUCTS: readonly ProductKind[] = ['CALL_SPREAD', 'PUT_SPREAD'];
 
 /** Odette markets: symbol -> price feed (CANONICAL_ASSETS, config.js:1209-1307). */
@@ -56,7 +61,7 @@ export const MAX_SECONDS_TO_EXPIRY = 73 * 60 * 60;
 export const MIN_SECONDS_TO_ORDER_EXPIRY = 30;
 
 export interface WhitelistOptions {
-  /** Default false. CALL_SPREAD and PUT_SPREAD stay hidden unless true. */
+  /** Default true. Set false to hide CALL_SPREAD and PUT_SPREAD. */
   enableSpreads?: boolean;
   /** Unix seconds to judge expiry and market days against. Default: the current time. */
   now?: number;
@@ -83,7 +88,8 @@ export type RejectReason =
   | 'not-daily-expiry'
   | 'expiry-out-of-range'
   | 'market-closed'
-  | 'order-expiring';
+  | 'order-expiring'
+  | 'ranger-zone-not-best';
 
 export type WhitelistResult =
   | { ok: true; order: OdetteOrder }
@@ -114,7 +120,7 @@ export function marketForPriceFeed(priceFeed: string): string | null {
 
 /** True when the product is on with these options. */
 export function isProductEnabled(product: ProductKind, opts: WhitelistOptions = {}): boolean {
-  return opts.enableSpreads === true || !HIDDEN_PRODUCTS.includes(product);
+  return opts.enableSpreads !== false || !HIDDEN_PRODUCTS.includes(product);
 }
 
 /**
@@ -259,18 +265,54 @@ export function checkWhitelist(raw: RawFeedOrder, opts: WhitelistOptions = {}): 
   return { ok: true, order: toOdetteOrder(raw, product, underlying, optionBook) };
 }
 
-/** Split feed orders into accepted Odette orders and rejected ones with their reason. */
+/** True when RANGER `a` pays a higher multiple (k / premium) than `b`. Exact: no floats. */
+function hasHigherRangerMultiple(a: OdetteOrder, b: OdetteOrder): boolean {
+  const k = (o: OdetteOrder): bigint => {
+    const [lower, zoneStart] = o.rawApiData.strikes.map((s) => BigInt(s)) as [bigint, bigint];
+    return zoneStart - lower;
+  };
+  return k(a) * b.order.price > k(b) * a.order.price;
+}
+
+/**
+ * Split feed orders into accepted Odette orders and rejected ones with their reason.
+ *
+ * The page shows one RANGER per zone: the best multiple for that asset, expiry and
+ * zone (revamp.js readRanges, ui_interactions.js renderRangerZones). The first order
+ * wins a tie, as on the page. The others are not shown, so they are not accepted.
+ */
 export function filterWhitelisted(
   raws: readonly RawFeedOrder[],
   opts: WhitelistOptions = {}
 ): { accepted: OdetteOrder[]; rejected: Array<{ raw: RawFeedOrder; reason: RejectReason; message: string }> } {
-  const accepted: OdetteOrder[] = [];
   const rejected: Array<{ raw: RawFeedOrder; reason: RejectReason; message: string }> = [];
   const fixed = { ...opts, now: opts.now ?? Math.floor(Date.now() / 1000) };
+  const passed: Array<{ raw: RawFeedOrder; order: OdetteOrder }> = [];
+  const bestInZone = new Map<string, OdetteOrder>();
+  const zoneOf = (o: OdetteOrder): string => {
+    const [, zoneStart, zoneEnd] = o.rawApiData.strikes;
+    return `${o.underlying}:${o.order.expiry}:${zoneStart}:${zoneEnd}`;
+  };
   for (const raw of raws) {
     const result = checkWhitelist(raw, fixed);
-    if (result.ok) accepted.push(result.order);
-    else rejected.push({ raw, reason: result.reason, message: result.message });
+    if (!result.ok) {
+      rejected.push({ raw, reason: result.reason, message: result.message });
+      continue;
+    }
+    passed.push({ raw, order: result.order });
+    if (result.order.product === 'RANGER') {
+      const zone = zoneOf(result.order);
+      const best = bestInZone.get(zone);
+      if (best === undefined || hasHigherRangerMultiple(result.order, best)) bestInZone.set(zone, result.order);
+    }
+  }
+  const accepted: OdetteOrder[] = [];
+  for (const { raw, order } of passed) {
+    if (order.product === 'RANGER' && bestInZone.get(zoneOf(order)) !== order) {
+      rejected.push({ raw, reason: 'ranger-zone-not-best', message: 'A better RANGER is quoted for this zone. Odette shows one order per zone.' });
+    } else {
+      accepted.push(order);
+    }
   }
   return { accepted, rejected };
 }

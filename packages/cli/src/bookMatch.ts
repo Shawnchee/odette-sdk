@@ -30,6 +30,13 @@ export interface OrderSelector {
   strikesRaw: bigint[];
   /** Exact unix seconds. */
   expiry: number;
+  /**
+   * Odette product (PUT, LINEAR_CALL, RANGER, CALL_SPREAD, PUT_SPREAD). When
+   * set, only that product matches: `--type CALL --strike 2200` must not pick
+   * a CALL_SPREAD, and `--type CALL_SPREAD` must not pick a call. Omitted by
+   * `check`, which scans vanillas and structure legs itself.
+   */
+  product?: string;
 }
 
 /** Minimal shape of a chain-config implementation entry. */
@@ -91,6 +98,7 @@ export function orderMatchesSelector(
   if (!raw) return false;
   const orderType: 'PUT' | 'CALL' = raw.isCall ? 'CALL' : 'PUT';
   if (orderType !== sel.type) return false;
+  if (sel.product !== undefined && order.product !== sel.product) return false;
   if (raw.priceFeed?.toLowerCase() !== sel.priceFeed) return false;
   if (Number(order.order.expiry) !== sel.expiry) return false;
   return sameStrikeMultiset(orderStrikesRaw(order), sel.strikesRaw);

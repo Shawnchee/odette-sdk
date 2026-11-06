@@ -123,6 +123,59 @@ export function underlyingSymbolByPriceFeed(
 }
 
 /**
+ * A price the way the Odette app prints one (revamp.js V2U.price): about four
+ * figures, so 78,716 · 2,475 · 697.8 · 106.7 · 7.41 · 1.475.
+ */
+export function formatPagePrice(v: number): string {
+  const digits = v >= 1000 ? 0 : v >= 100 ? 1 : v >= 10 ? 2 : 3;
+  return v.toLocaleString('en-US', { maximumFractionDigits: digits });
+}
+
+/** A payout multiple the way the app prints one (revamp.js V2Wells.mult): 12.5× or 1.75×. */
+export function formatPageMultiple(m: number): string {
+  if (!Number.isFinite(m)) return '—';
+  return `${m.toFixed(m >= 2 ? 1 : 2)}×`;
+}
+
+/**
+ * One order in the words the Odette app uses for it. Nothing here is new: the
+ * app's ticket asks "Will ETH close above 2,240" for a call spread and reads
+ * "Above 2,240 from 2,220" (revamp.js:3855, :6414); a range asks "close between
+ * lo and hi" (revamp.js:4031); the Chain's columns are "CALLS — PAY ABOVE" and
+ * "PUTS — PAY BELOW" (revamp.js:3283). The multiple is width / premium for a
+ * spread and k / premium for a range, as the Chart cells print it
+ * (revamp.js readSpreads, readRanges).
+ *
+ * `strikesUsd` are in the order's own order; `premiumUsd` is the price per contract.
+ */
+export function formatPageLabel(
+  product: string,
+  strikesUsd: number[],
+  isCall: boolean,
+  premiumUsd: number
+): string {
+  const p = formatPagePrice;
+  const side = isCall ? 'Above' : 'Below';
+  switch (product) {
+    case 'CALL_SPREAD':
+    case 'PUT_SPREAD': {
+      if (strikesUsd.length !== 2) return `${side} ${strikesUsd.map(p).join(' / ')}`;
+      const [strike, cap] = strikesUsd as [number, number];
+      const width = Math.abs(cap - strike);
+      return `${side} ${p(cap)} from ${p(strike)} · ${formatPageMultiple(width / premiumUsd)}`;
+    }
+    case 'RANGER': {
+      if (strikesUsd.length !== 4) return `Between ${strikesUsd.map(p).join(' / ')}`;
+      const [callLower, zoneStart, zoneEnd] = strikesUsd as [number, number, number, number];
+      const k = zoneStart - callLower;
+      return `Between ${p(zoneStart)} and ${p(zoneEnd)} · ${formatPageMultiple(k / premiumUsd)}`;
+    }
+    default:
+      return `${side} ${strikesUsd.map(p).join(' / ')}`;
+  }
+}
+
+/**
  * Ticker for a structure (spread / fly / condor / ranger). Multi-leg orders
  * must never render with a bare `-C` / `-P` suffix: `book check` used to label
  * a 4-strike RANGER `ETH-28AUG26-2150-C`, which reads as a vanilla call and

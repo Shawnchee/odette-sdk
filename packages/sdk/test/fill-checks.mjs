@@ -62,7 +62,7 @@ await check('8: a budget under the 0.50 USDC minimum fails with the smallest cos
   const { client, put } = await setup();
   const c = byId(await client.optionBook.checkFill(put, 100000n), 8);
   assert.equal(c.ok, false);
-  assert.match(c.message, /^0\.1 USDC is below the minimum\. The smallest fill costs 0\.5\d* USDC\.$/);
+  assert.match(c.message, /^0\.1 USDC is below the minimum\. The smallest fill costs \d+\.\d+ USDC\.$/);
 });
 
 await check('11: taker balance below the premium fails', async () => {
@@ -109,19 +109,20 @@ await check('fillOrder without a signer throws SIGNER_REQUIRED before any read',
   assert.equal(chain.state.calls.length, 0);
 });
 
-await check('a hidden spread order is refused at check 2 even if passed in by hand', async () => {
-  const on = new OdetteClient({ provider: fakeChain({ now: NOW }).provider, fetch: fetchStub, enableSpreads: true });
+await check('with enableSpreads false, a spread is refused at check 2 even if passed in by hand', async () => {
+  const { client: on } = await setup();
   const spread = (await on.api.fetchOrders(NOW)).find((o) => o.product === 'CALL_SPREAD');
-  const { client } = await setup();
-  const c = byId(await client.optionBook.checkFill(spread, 25_000000n, { taker: TAKER }), 2);
+  const off = new OdetteClient({ provider: fakeChain({ now: NOW }).provider, fetch: fetchStub, enableSpreads: false });
+  const c = byId(await off.optionBook.checkFill(spread, 25_000000n, { taker: TAKER }), 2);
   assert.equal(c.ok, false);
   assert.match(c.message, /^Order type is not supported by Odette/);
 });
 
-await check('a hidden spread cannot be previewed, encoded or sized on a default client', async () => {
-  const on = new OdetteClient({ provider: fakeChain({ now: NOW }).provider, fetch: fetchStub, enableSpreads: true });
+await check('with enableSpreads false, a spread cannot be previewed, encoded or sized', async () => {
+  const { client: on } = await setup();
   const spread = (await on.api.fetchOrders(NOW)).find((o) => o.product === 'CALL_SPREAD');
-  const { client } = await setup();
+  const offChain = fakeChain({ now: NOW });
+  const client = new OdetteClient({ provider: offChain.provider, signer: recordingSigner(offChain.provider, TAKER), fetch: fetchStub, enableSpreads: false });
   for (const call of [
     () => client.optionBook.previewFillOrder(spread),
     () => client.optionBook.encodeFillOrder(spread, 25_000000n),

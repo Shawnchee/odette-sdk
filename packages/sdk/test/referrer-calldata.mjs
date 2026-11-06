@@ -6,7 +6,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { Interface, ZeroAddress } from 'ethers';
-import { OdetteClient, ODETTE_REFERRER, OPTION_BOOK_ABI, OPTION_BOOK_R12, USDC, contractsForUsdc } from '../src/index.ts';
+import { OdetteClient, ODETTE_REFERRER, OPTION_BOOK_ABI, OPTION_BOOK_R12, USDC, IMPLEMENTATIONS, contractsForUsdc, collateralForContracts } from '../src/index.ts';
 import { fakeChain, recordingSigner } from './helpers/fake-chain.mjs';
 
 const NOW = 1793085599; // feed recorded 2026-10-27T07:19:59Z
@@ -29,8 +29,8 @@ const HAND = new Interface([
   'function fillOrder((address maker,uint256 orderExpiryTimestamp,address collateral,bool isCall,address priceFeed,address implementation,bool isLong,uint256 maxCollateralUsable,uint256[] strikes,uint256 expiry,uint256 price,uint256 numContracts,bytes extraOptionData) order, bytes signature, address referrer) returns (address)',
 ]);
 
-await check('fixture gives PUT, LINEAR_CALL and RANGER orders', async () => {
-  assert.deepEqual(orders.map((o) => o.product).sort(), ['LINEAR_CALL', 'PUT', 'RANGER']);
+await check('fixture gives PUT, LINEAR_CALL, RANGER, CALL_SPREAD and PUT_SPREAD orders', async () => {
+  assert.deepEqual(orders.map((o) => o.product).sort(), ['CALL_SPREAD', 'LINEAR_CALL', 'PUT', 'PUT_SPREAD', 'RANGER']);
 });
 
 await check('encodeFillOrder: SDK ABI decodes referrer = ODETTE_REFERRER for every product', async () => {
@@ -81,6 +81,25 @@ await check('the transaction fillOrder sends carries ODETTE_REFERRER (real Contr
   assert.equal(tx.data, live.optionBook.encodeFillOrder(o, premium).data);
   // gas limit = estimate x 1.2
   assert.equal(tx.gasLimit, (400_000n * 120n) / 100n);
+});
+
+await check('spreads: both strikes, the spread implementation and ODETTE_REFERRER reach calldata; size is by width', async () => {
+  for (const kind of ['CALL_SPREAD', 'PUT_SPREAD']) {
+    const o = orders.find((x) => x.product === kind);
+    const { to, data } = client.optionBook.encodeFillOrder(o, 25_000000n);
+    assert.equal(to, OPTION_BOOK_R12);
+    const args = HAND.decodeFunctionData('fillOrder', data);
+    assert.equal(args.referrer, ODETTE_REFERRER);
+    assert.equal(args.order.implementation.toLowerCase(), IMPLEMENTATIONS[kind].toLowerCase());
+    assert.deepEqual(args.order.strikes.map(String), o.rawApiData.strikes);
+    assert.equal(args.order.strikes.length, 2);
+    // Width is 1,000 USD on both fixture spreads: 1 contract posts 1,000 USDC.
+    const [a, b] = args.order.strikes;
+    const width = a > b ? a - b : b - a;
+    assert.equal(width, 1000_00000000n);
+    assert.equal(args.order.numContracts, contractsForUsdc(o, 25_000000n));
+    assert.equal(collateralForContracts(o, args.order.numContracts), (args.order.numContracts * width) / 100000000n);
+  }
 });
 
 await check('preview reports the referrer constant and the real premium', async () => {

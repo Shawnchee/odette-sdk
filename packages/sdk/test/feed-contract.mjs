@@ -77,22 +77,22 @@ await check('recorded payload: every entry carries optionBookAddress r12 and cha
   }
 });
 
-await check('fetchOrders: default URL, only PUT / LINEAR_CALL / RANGER on USDC', async () => {
+await check('fetchOrders: default URL, the five Odette products on USDC', async () => {
   const calls = stubFetch(sample);
   const { warns, logger } = captureLogger();
   const orders = await fetchOrders({ logger, now: NOW });
   assert.equal(calls.length, 1);
   assert.equal(calls[0].url, DEFAULT_FEED_URL);
-  assert.deepEqual(orders.map((o) => o.product).sort(), ['LINEAR_CALL', 'PUT', 'RANGER']);
+  assert.deepEqual(orders.map((o) => o.product).sort(), ['CALL_SPREAD', 'LINEAR_CALL', 'PUT', 'PUT_SPREAD', 'RANGER']);
   for (const o of orders) assert.equal(o.rawApiData.collateral, '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913');
   assert.equal(warns.length, 1);
-  assert.equal(warns[0].meta.count, 11);
+  assert.equal(warns[0].meta.count, 9);
 });
 
-await check('fetchOrders: enableSpreads adds the two USDC BTC spreads only', async () => {
+await check('fetchOrders: enableSpreads false drops the two USDC BTC spreads only', async () => {
   stubFetch(sample);
-  const orders = await fetchOrders({ enableSpreads: true, now: NOW });
-  assert.deepEqual(orders.map((o) => o.product).sort(), ['CALL_SPREAD', 'LINEAR_CALL', 'PUT', 'PUT_SPREAD', 'RANGER']);
+  const orders = await fetchOrders({ enableSpreads: false, now: NOW });
+  assert.deepEqual(orders.map((o) => o.product).sort(), ['LINEAR_CALL', 'PUT', 'RANGER']);
 });
 
 await check('fetchOrders on the 10-order fixture returns the 5 allowed', async () => {
@@ -108,7 +108,7 @@ await check('fetchOrdersRaw returns every well-formed entry, unfiltered', async 
 
 await check('unwrapped { orders } body is accepted', async () => {
   stubFetch({ orders: sample.data.orders });
-  assert.equal((await fetchOrders({ now: NOW })).length, 3);
+  assert.equal((await fetchOrders({ now: NOW })).length, 5);
 });
 
 await check('malformed entries are reported, not filled with zero', async () => {
