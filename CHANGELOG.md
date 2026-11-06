@@ -3,7 +3,7 @@
 All notable changes to `@odette-fi/sdk` and `@odette-fi/cli`.
 Both packages share one version.
 
-## Unreleased
+## 0.2.0 — 2026-11-06
 
 ### Breaking
 
