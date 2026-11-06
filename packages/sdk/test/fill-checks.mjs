@@ -62,7 +62,7 @@ await check('8: a budget under the 0.50 USDC minimum fails with the smallest cos
   const { client, put } = await setup();
   const c = byId(await client.optionBook.checkFill(put, 100000n), 8);
   assert.equal(c.ok, false);
-  assert.match(c.message, /^0\.1 USDC is below the minimum\. The smallest fill costs \d+\.\d+ USDC\.$/);
+  assert.match(c.message, /^0\.1 USDC is below the minimum for this order\. The smallest fill costs \d+\.\d+ USDC\. A PUT or CALL starts at a whole percent of the order, at least 0\.50 USDC\. Use \d+(\.\d{1,2})? USDC or more\.$/);
 });
 
 await check('11: taker balance below the premium fails', async () => {

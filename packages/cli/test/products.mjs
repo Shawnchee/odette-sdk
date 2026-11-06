@@ -44,7 +44,7 @@ check('orders --type RANGER lists RANGER only; CALL excludes RANGER; PUT is PUT 
 check('orders --type with an unknown product exits 2', () => {
   const r = runCli([...noCfg, 'orders', '--type', 'FLY']);
   assert.equal(r.code, 2);
-  assert.match(r.stderr, /Expected PUT, CALL, RANGER, CALL_SPREAD or PUT_SPREAD/);
+  assert.match(r.stderr, /Expected SPREAD, PUT, CALL, RANGER, CALL_SPREAD or PUT_SPREAD/);
 });
 
 check('preview --type RANGER: exit 0, max payout is k per contract (not the 2k the maker posts)', () => {

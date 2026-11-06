@@ -5,6 +5,7 @@
 // Network is stubbed; nothing is sent.
 
 import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { Interface, Wallet } from 'ethers';
 import { runCli, tempDir } from './helpers/run-cli.mjs';
@@ -57,6 +58,66 @@ check('orders --type CALL_SPREAD / PUT_SPREAD list that product only; CALL and P
   assert.ok(ps.length >= 1 && ps.every((r) => r.product === 'PUT_SPREAD'));
   assert.ok(json(['orders', '--type', 'CALL']).every((r) => r.product === 'LINEAR_CALL'));
   assert.ok(json(['orders', '--type', 'PUT']).every((r) => r.product === 'PUT'));
+});
+
+check('odette orders spread lists both spreads and nothing else, with the same rows as --type SPREAD', () => {
+  const rows = json(['orders', 'spread']);
+  assert.deepEqual([...new Set(rows.map((r) => r.product))].sort(), ['CALL_SPREAD', 'PUT_SPREAD']);
+  assert.ok(rows.every((r) => ['BTC', 'ETH'].includes(r.underlying)));
+  assert.deepEqual(json(['orders', '--type', 'SPREAD']), rows);
+  assert.deepEqual(json(['orders', 'SPREADS']), rows);
+});
+
+check('a wrong orders product exits 2 and is never ignored; product and --type together exit 2', () => {
+  const wrong = runCli([...noCfg, 'orders', 'spred']);
+  assert.equal(wrong.code, 2);
+  assert.match(wrong.stderr, /Invalid product "spred"/);
+  const both = runCli([...noCfg, 'orders', 'spread', '--type', 'PUT']);
+  assert.equal(both.code, 2);
+  assert.match(both.stderr, /Pass the product once/);
+  const extra = runCli([...noCfg, 'orders', 'spread', 'extra']);
+  assert.notEqual(extra.code, 0);
+  assert.match(extra.stderr, /too many arguments/);
+});
+
+check('orders and preview state the minimum: RANGER about 1 USDC, spread about 0.50 USDC, PUT 0.50 USDC or more', () => {
+  const rows = json(['orders']);
+  const costs = (product) => rows.filter((r) => r.product === product && r.minCost !== null).map((r) => Number(r.minCost));
+  assert.ok(costs('RANGER').length > 0 && costs('RANGER').every((c) => c > 0.99 && c < 1.01), `RANGER ${costs('RANGER')}`);
+  assert.ok(costs('PUT_SPREAD').length > 0 && costs('PUT_SPREAD').every((c) => c >= 0.5 && c < 0.51), `PUT_SPREAD ${costs('PUT_SPREAD')}`);
+  assert.ok(costs('PUT').length > 0 && costs('PUT').every((c) => c >= 0.5), `PUT ${costs('PUT')}`);
+  assert.ok(rows.filter((r) => r.product === 'RANGER' && r.maxCost !== null).every((r) => Number(r.maxCost) <= 100.01));
+  const p = json(['preview', ...CS, '--collateral', '5']);
+  assert.ok(Number(p.minCost) >= 0.5 && Number(p.minCost) < 0.51);
+  assert.match(p.label, /Above 81,000 from 80,000/);
+  assert.ok(typeof p.breakeven === 'number');
+});
+
+check('--collateral under the minimum: exit 2, a clear message per product, nothing sent', () => {
+  const low = (args, amount) => runCli([...noCfg, ...args, '--collateral', amount]);
+  const spread = low(['preview', ...CS], '0.3');
+  assert.equal(spread.code, 2, spread.stderr);
+  assert.match(spread.stderr, /0\.3 USDC is below the minimum for this order\. The smallest fill costs 0\.5\d* USDC\. A spread starts at 0\.50 USDC\. Use 0\.5\d? USDC or more\./);
+  const ranger = low(['preview', '--underlying', 'BTC', '--type', 'RANGER', '--strikes', '78500,79000,80000,80500', '--expiry', EXP], '0.6');
+  assert.equal(ranger.code, 2, ranger.stderr);
+  assert.match(ranger.stderr, /0\.6 USDC is below the minimum for this order\. .*A RANGER starts at 1 USDC\. Use 1(\.\d+)? USDC or more\./);
+  const zero = low(['preview', ...CS], '0');
+  assert.equal(zero.code, 2, zero.stderr);
+  assert.match(zero.stderr, /below the minimum for this order/);
+  const negative = low(['preview', ...CS], '-1');
+  assert.equal(negative.code, 2, negative.stderr);
+  assert.match(negative.stderr, /--collateral must not be negative\. Got -1\./);
+  assert.doesNotMatch(negative.stderr, /1000000/);
+  // fill refuses before any approval or send, with the same message.
+  const sentFile = join(tempDir(), 'sent.json');
+  const fill = runCli([...noCfg, '--yes', 'fill', ...CS, '--collateral', '0.3'], { env: { ODETTE_PRIVATE_KEY: key, STUB_SENT_FILE: sentFile } });
+  assert.equal(fill.code, 2, fill.stderr);
+  assert.match(fill.stderr, /A spread starts at 0\.50 USDC/);
+  assert.doesNotMatch(fill.stderr, /Approv/);
+  assert.equal(existsSync(sentFile), false);
+  // The amount the message suggests works.
+  const suggested = spread.stderr.match(/Use (\d+(?:\.\d+)?) USDC or more/)[1];
+  assert.equal(low(['preview', ...CS], suggested).code, 0);
 });
 
 check('orders table shows the spread ticker and label', () => {

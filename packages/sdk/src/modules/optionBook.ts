@@ -126,6 +126,21 @@ function usdc(amount: bigint): string {
   return `${fromBigInt(amount, USDC.decimals)} USDC`;
 }
 
+/** Says what failed, the rule behind it, and an amount that works (the minimum, up to the next cent). */
+function belowMinimumMessage(order: OdetteOrder, amount: bigint, smallestCost: bigint): string {
+  const rule =
+    order.product === 'RANGER'
+      ? smallestCost < 990_000n
+        ? 'A RANGER starts at 1 USDC, or at the whole order when it costs less.'
+        : 'A RANGER starts at 1 USDC.'
+      : order.product === 'CALL_SPREAD' || order.product === 'PUT_SPREAD'
+        ? 'A spread starts at 0.50 USDC.'
+        : 'A PUT or CALL starts at a whole percent of the order, at least 0.50 USDC.';
+  const cent = 10_000n;
+  const nextCent = ((smallestCost + cent - 1n) / cent) * cent;
+  return `${usdc(amount)} is below the minimum for this order. The smallest fill costs ${usdc(smallestCost)}. ${rule} Use ${usdc(nextCent)} or more.`;
+}
+
 /**
  * Module for OptionBook contract interactions (v2)
  *
@@ -277,7 +292,7 @@ export class OptionBookModule {
       if (numContracts === 0n) {
         throw createError(
           'INVALID_PARAMS',
-          `${usdc(usdcAmount)} is below the minimum. The smallest fill costs ${usdc(premiumForContracts(order, min))}.`
+          belowMinimumMessage(order, usdcAmount, premiumForContracts(order, min))
         );
       }
     } else {

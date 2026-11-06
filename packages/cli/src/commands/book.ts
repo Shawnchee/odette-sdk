@@ -30,6 +30,9 @@ import { Interface, MaxUint256 } from 'ethers';
 import {
   ODETTE_REFERRER,
   OPTION_BOOK_ABI,
+  maxContracts,
+  minContracts,
+  premiumForContracts,
   type CheckResult,
   type OdetteOrder as OrderWithSignature,
 } from '@odette-fi/sdk';
@@ -225,6 +228,46 @@ const TYPE_FLAG: Record<string, { product: OrderWithSignature['product']; strike
   PUT_SPREAD: { product: 'PUT_SPREAD', strikes: 2 },
 };
 const TYPE_HELP = 'PUT, CALL, RANGER, CALL_SPREAD or PUT_SPREAD';
+const COLLATERAL_HELP =
+  'USDC amount to spend on premium. Minimum: RANGER 1 USDC, spread 0.50 USDC, PUT or CALL a whole percent of the order (0.50 USDC or more). RANGER maximum: 100 USDC. `orders` and `preview` show minCost for each order.';
+
+/** The products `odette orders <product>` and `orders --type` can list. SPREAD is both spreads. */
+function listedProducts(input: string): ReadonlySet<OrderWithSignature['product']> | null {
+  const upper = input.toUpperCase();
+  if (upper === 'SPREAD' || upper === 'SPREADS') return new Set(['CALL_SPREAD', 'PUT_SPREAD']);
+  const flag = TYPE_FLAG[upper];
+  return flag ? new Set([flag.product]) : null;
+}
+
+/** USDC with 6 decimals as plain text: 500001n -> "0.500001". */
+function usdcText(amount: bigint): string {
+  const fraction = (amount % 1_000000n).toString().padStart(6, '0');
+  return `${amount / 1_000000n}.${fraction}`;
+}
+
+/** Least and most this order costs on the page's ticket, in USDC. null: too small to trade. */
+function costRange(order: OrderWithSignature): { minCost: string | null; maxCost: string | null } {
+  const min = minContracts(order);
+  if (min === null) return { minCost: null, maxCost: null };
+  return {
+    minCost: usdcText(premiumForContracts(order, min)),
+    maxCost: usdcText(premiumForContracts(order, maxContracts(order))),
+  };
+}
+
+/** The page's words and limits, for JSON output of a preview. */
+function previewFacts(order: OrderWithSignature): Record<string, unknown> {
+  const strikes = (order.rawApiData?.strikes ?? []).map((s) => Number(s) / 1e8);
+  const premium = Number(order.order.price) / 10 ** ORDER_PRICE_DECIMALS;
+  const breakeven =
+    order.product === 'RANGER' || strikes.length === 0
+      ? undefined
+      : order.rawApiData?.isCall
+        ? strikes[0]! + premium
+        : strikes[0]! - premium;
+  return { label: pageLabel(order), ...costRange(order), ...(breakeven !== undefined ? { breakeven } : {}) };
+}
+
 /** The order in the words the Odette app uses for it (format.ts formatPageLabel). */
 function pageLabel(order: OrderWithSignature): string {
   const strikesUsd = (order.rawApiData?.strikes ?? []).map((s) => Number(s) / 1e8);
@@ -298,11 +341,24 @@ function computeCollateralAmount(
     throw usage('--collateral is empty. Pass the USDC amount to spend, for example --collateral 5.');
   }
   const decimals = collateralDecimalsFromOrder(order, client);
+  let amount: bigint;
   try {
-    return client.utils.toBigInt(flags.collateral, decimals);
+    amount = client.utils.toBigInt(flags.collateral, decimals);
   } catch {
     throw usage(`Invalid --collateral "${flags.collateral}". Pass a USDC amount, for example 5 or 2.5.`);
   }
+  if (amount < 0n) {
+    throw usage(`--collateral must not be negative. Got ${flags.collateral}. Pass a USDC amount, for example 5 or 2.5.`);
+  }
+  // Too small an amount is a usage error (exit 2), caught before any prompt or
+  // approval. The SDK's message names the minimum and an amount that works.
+  try {
+    client.optionBook.previewFillOrder(order, amount);
+  } catch (err) {
+    if ((err as { code?: string }).code === 'INVALID_PARAMS') throw usage((err as Error).message);
+    throw err;
+  }
+  return amount;
 }
 
 function collateralDecimalsFromOrder(
@@ -337,6 +393,7 @@ function summarizeOrder(
     product: order.product,
     underlying: order.underlying,
     label: pageLabel(order),
+    ...costRange(order),
     maker: order.order.maker,
     isCall: order.rawApiData?.isCall,
     isLong: order.rawApiData?.isLong,
@@ -401,6 +458,7 @@ function summarizeOrderHuman(
     label: pageLabel(order),
     strike: formatStrikeUsd(strikesUsd),
     premium: formatUsd(premiumHuman),
+    minCost: costRange(order).minCost === null ? 'too small' : `$${Number(costRange(order).minCost).toFixed(2)}`,
     expiry: formatExpiry(expiry),
     available: formatUsd(availableHuman),
     collateralSymbol: collSym,
@@ -488,6 +546,8 @@ function humanizePreview(
     // Table labels: what you pay, and the most you can be paid at expiry.
     // (JSON keeps upstream's `totalCollateral` name for the premium.)
     premium: formatUsd(totalCollateralHuman, 6),
+    minCost: costRange(order).minCost ?? 'too small',
+    maxCost: costRange(order).maxCost ?? 'too small',
     maxPayout: formatUsd(Number(preview.maxPayout) / 10 ** collDec, 6),
     ...(breakeven !== undefined ? { breakeven: formatUsd(breakeven, 4) } : {}),
     expiry: formatExpiry(expiry),
@@ -808,14 +868,28 @@ function registerCheck(grp: Command): void {
 function registerReads(grp: Command): void {
   grp
     .command('orders')
+    .allowExcessArguments(false)
     .description('List Odette orders you can buy now (PUT, LINEAR_CALL, RANGER, CALL_SPREAD, PUT_SPREAD on USDC)')
     .option('--underlying <asset>', 'filter by underlying (e.g. ETH, BTC)')
-    .option('--type <type>', `filter by product: ${TYPE_HELP}`)
+    .argument('[product]', `list one product: SPREAD (both spreads), ${TYPE_HELP}`)
+    .option('--type <type>', `filter by product: SPREAD (both spreads), ${TYPE_HELP}`)
     .option('--min-expiry <ts>', 'filter by minimum expiry timestamp (unix seconds)')
-    .action(async (_local: unknown, cmd: Command) => {
+    .action(async (productArg: string | undefined, _local: unknown, cmd: Command) => {
       const opts = getGlobalOpts(cmd);
       const local = cmd.opts<{ underlying?: string; type?: string; minExpiry?: string }>();
       try {
+        // Read the product before any network call, so a typo costs nothing.
+        const productInput = productArg ?? local.type;
+        if (productArg !== undefined && local.type !== undefined) {
+          throw Object.assign(new Error(`Pass the product once: "${productArg}" or --type ${local.type}, not both.`), { exitCode: 2 });
+        }
+        let wantProducts: ReadonlySet<OrderWithSignature['product']> | null = null;
+        if (productInput !== undefined) {
+          wantProducts = listedProducts(productInput);
+          if (wantProducts === null) {
+            throw Object.assign(new Error(`Invalid product "${productInput}". Expected SPREAD, ${TYPE_HELP}.`), { exitCode: 2 });
+          }
+        }
         const { client } = getClient(opts);
 
         // Fetch the full book and filter client-side. The SDK's filterOrders()
@@ -830,19 +904,6 @@ function registerReads(grp: Command): void {
           (order, index) => ({ order, index })
         );
 
-        // Odette products: PUT, CALL (= LINEAR_CALL), RANGER, CALL_SPREAD and
-        // PUT_SPREAD. A RANGER or a CALL_SPREAD carries isCall=true on chain
-        // but is not a call, so filter by product.
-        let wantProduct: OrderWithSignature['product'] | null = null;
-        if (local.type) {
-          const typeFlag = TYPE_FLAG[local.type.toUpperCase()];
-          if (!typeFlag) {
-            const err = new Error(`Invalid --type "${local.type}". Expected ${TYPE_HELP}.`);
-            (err as { exitCode?: number }).exitCode = 2;
-            throw err;
-          }
-          wantProduct = typeFlag.product;
-        }
         const minExpiry = local.minExpiry
           ? strictInt(local.minExpiry)
           : null;
@@ -868,7 +929,9 @@ function registerReads(grp: Command): void {
         }
 
         const filtered = indexedEligible.filter(({ order: o }) => {
-          if (wantProduct !== null && o.product !== wantProduct) return false;
+          // A RANGER or a CALL_SPREAD carries isCall=true on chain but is not a call,
+          // so filter by product.
+          if (wantProducts !== null && !wantProducts.has(o.product)) return false;
           if (wantPriceFeed !== null) {
             const pf = o.rawApiData?.priceFeed?.toLowerCase();
             if (pf !== wantPriceFeed) return false;
@@ -904,7 +967,7 @@ function registerReads(grp: Command): void {
     .option('--strikes <csv>', 'comma-separated strikes in USD (spread: strike,cap; RANGER: 4 values)')
     .option('--expiry <ts>', 'unix expiry seconds')
     .option('--strict', 'when multiple orders match the selector, error instead of picking the cheapest')
-    .option('--collateral <n>', 'USDC amount to spend on premium (e.g. 1 for $1). Number of contracts is auto-derived from the order price. Omit to preview a max fill.')
+    .option('--collateral <n>', `${COLLATERAL_HELP} Omit to preview a max fill.`)
     .action(async (_local: unknown, cmd: Command) => {
       const opts = getGlobalOpts(cmd);
       const local = cmd.opts<{
@@ -937,7 +1000,7 @@ function registerReads(grp: Command): void {
           process.stdout.write('\nChecks:\n');
           render(checkRows(checks), ro);
         } else {
-          render({ ...preview, checks }, ro);
+          render({ ...preview, ...previewFacts(order), checks }, ro);
         }
       } catch (err) {
         renderError(err, renderOpts(opts));
@@ -996,7 +1059,7 @@ function registerWrites(grp: Command): void {
     .option('--strikes <csv>', 'comma-separated strikes in USD (spread: strike,cap; RANGER: 4 values)')
     .option('--expiry <ts>', 'unix expiry seconds')
     .option('--strict', 'when multiple orders match the selector, error instead of picking the cheapest')
-    .option('--collateral <n>', 'USDC amount to spend on premium (e.g. 1 for $1). Number of contracts is auto-derived from the order price. Omit to fill the maximum available.')
+    .option('--collateral <n>', `${COLLATERAL_HELP} Omit to fill the maximum available.`)
     .option(
       '--approve-amount <max|n>',
       'approval amount when allowance is insufficient: "exact", "max" (unlimited, MaxUint256), or a decimal USDC amount. Default: the --collateral budget, or the exact premium for a max fill.'
@@ -1050,7 +1113,7 @@ function registerWrites(grp: Command): void {
         const isTable = (ro.output ?? 'table') === 'table';
         const previewWithPayout: Record<string, unknown> = isTable
           ? humanizePreview(preview, order, client)
-          : { ...preview };
+          : { ...preview, ...previewFacts(order) };
         // In table mode the preview is its own block. For machine output we
         // hold it back and fold it into the single dry-run object below —
         // emitting two top-level JSON documents on stdout made `book fill
