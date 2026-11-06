@@ -11,7 +11,8 @@ handles the order format, sizing and units, safety checks and approvals.
 **Every fill carries Odette's referrer**, `0x94D784e81A5c8cA6E19629C73217b61a256Ea1c7`.
 It is fixed; no option changes it.
 
-Products: PUT, CALL (LINEAR_CALL) and RANGER, paid in USDC. The SDK only **buys**.
+Products: PUT, CALL (LINEAR_CALL), RANGER, CALL_SPREAD and PUT_SPREAD, paid in USDC: the
+same list the Odette app shows. Spreads trade on BTC and ETH. The SDK only **buys**.
 Odette options are cash-settled in USDC at expiry.
 
 ## Install
@@ -50,8 +51,8 @@ console.log(client.optionBook.decodeOrderFilled(receipt));
 
 | Method | What it does |
 |---|---|
-| `new OdetteClient({ provider, signer? })` | Base (8453) only. Refuses a `referrer` option. |
-| `client.api.fetchOrders()` | The orders the Odette app lists now (PUT, LINEAR_CALL, RANGER). |
+| `new OdetteClient({ provider, signer?, enableSpreads? })` | Base (8453) only. Refuses a `referrer` option. `enableSpreads: false` hides CALL_SPREAD and PUT_SPREAD (default: listed). |
+| `client.api.fetchOrders()` | The orders the Odette app lists now (PUT, LINEAR_CALL, RANGER, CALL_SPREAD, PUT_SPREAD). |
 | `client.optionBook.previewFillOrder(order, usdc?)` | Contracts, premium (`totalCollateral`), `maxPayout`, step, min, max. No network. |
 | `client.optionBook.checkFill(order, usdc?)` | The pre-send checks against Base: chain, order, size, maker funds, your balance and allowance, simulation. Never sends. |
 | `client.optionBook.encodeFillOrder(order, usdc?)` | `{ to, data }` for any wallet library (for example a smart wallet). |

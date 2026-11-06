@@ -18,7 +18,8 @@ Trade Odette options on Base from a terminal or from your own code.
 
 No trade goes through a server. Every fill carries Odette's referrer,
 `0x94D784e81A5c8cA6E19629C73217b61a256Ea1c7`, so it counts as an Odette trade.
-The tools only buy PUT, CALL and RANGER options with USDC. They settle in cash at expiry.
+The tools only buy PUT, CALL, RANGER, CALL_SPREAD and PUT_SPREAD options with USDC: the same
+list the Odette app shows. They settle in cash at expiry.
 
 ## Repository
 
