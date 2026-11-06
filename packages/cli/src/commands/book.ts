@@ -54,7 +54,7 @@ import {
   isEligibleBookOrder,
   type BookEligibilityPolicy,
 } from '../bookEligibility.js';
-import { bookPremiumCeiling, withActualBookPremium } from '../bookPreview.js';
+import { BOOK_PRICE_SCALE, bookPremiumCeiling, withActualBookPremium } from '../bookPreview.js';
 import { findSameInstrument } from '../bookOrderIdentity.js';
 import { findMatchingOrders, resolvePriceFeed } from '../bookMatch.js';
 import {
@@ -1064,9 +1064,19 @@ function registerWrites(grp: Command): void {
         // slack costs 1e-6 USDC and survives either contract rounding rule.
         const required = bookPremiumCeiling(preview);
 
+        // A typed amount rounds to the nearest contract unit, as on the page, so
+        // the premium can pass the budget by under one step. A re-quote before
+        // send sizes again, so the budget needs that slack to cover the fresh premium.
+        const budgetCover =
+          collateralAmount === undefined
+            ? required
+            : collateralAmount +
+              (preview.step * preview.pricePerContract + BOOK_PRICE_SCALE - 1n) / BOOK_PRICE_SCALE;
+        const defaultCover = budgetCover > required ? budgetCover : required;
+
         // Resolve how much to approve, IF approval ends up being needed.
-        //   undefined → the --collateral budget (premium never exceeds it, so
-        //               a re-quote before send cannot leave the allowance short),
+        //   undefined → the --collateral budget plus one step of premium, so a
+        //               re-quote before send cannot leave the allowance short,
         //               or the exact premium for a max fill
         //   "exact"   → the exact premium
         //   "max"     → MaxUint256
@@ -1075,7 +1085,7 @@ function registerWrites(grp: Command): void {
         let approveAmount: bigint;
         let approveIsMax = false;
         if (local.approveAmount === undefined) {
-          approveAmount = collateralAmount !== undefined && collateralAmount > required ? collateralAmount : required;
+          approveAmount = defaultCover;
         } else if (local.approveAmount === 'exact') {
           approveAmount = required;
         } else if (local.approveAmount === 'max') {
@@ -1100,6 +1110,10 @@ function registerWrites(grp: Command): void {
           }
           approveAmount = parsed;
         }
+        // The allowance this fill asks for. An explicit --approve-amount is the
+        // user's call; the default covers a re-quote.
+        const allowanceNeeded = local.approveAmount === undefined ? defaultCover : required;
+
         // Dry-run: always emit the fill calldata regardless of allowance, plus
         // the would-be approve calldata if approval is needed. The user can
         // then submit both via a separate signer. We never prompt or broadcast.
@@ -1112,7 +1126,7 @@ function registerWrites(grp: Command): void {
           );
           const fillEncoded = client.optionBook.encodeFillOrder(order, collateralAmount);
           let approveEncoded: ReturnType<typeof client.erc20.encodeApprove> | null = null;
-          if (currentAllowanceDryRun < required) {
+          if (currentAllowanceDryRun < allowanceNeeded) {
             approveEncoded = client.erc20.encodeApprove(
               collateralAddr,
               spender,
@@ -1172,9 +1186,9 @@ function registerWrites(grp: Command): void {
           signerAddr,
           spender
         );
-        if (currentAllowance < required) {
+        if (currentAllowance < allowanceNeeded) {
           process.stderr.write(
-            `Allowance is ${currentAllowance.toString()}, need ${required.toString()}. ` +
+            `Allowance is ${currentAllowance.toString()}, need ${allowanceNeeded.toString()}. ` +
               `Approving the OptionBook contract is required to proceed.\n`
           );
           if (approveIsMax) {
@@ -1235,6 +1249,29 @@ function registerWrites(grp: Command): void {
           if (!opts.yes) {
             const again = await confirm('Proceed at the new terms?', { yes: false, dryRun: opts.dryRun });
             if (!again) process.exit(3);
+          }
+        }
+
+        // The fresh quote can need more than was approved. Ask for the rest here,
+        // before the send, unless the user named their own limit with
+        // --approve-amount <n>: then the fill's check 12 refuses and says so.
+        const freshRequired = bookPremiumCeiling(freshPreview);
+        const namedLimit = local.approveAmount !== undefined && local.approveAmount !== 'exact' && local.approveAmount !== 'max';
+        if (!namedLimit) {
+          const allowanceNow = await client.erc20.getAllowance(collateralAddr, signerAddr, spender);
+          if (allowanceNow < freshRequired) {
+            process.stderr.write(
+              `The re-quote needs ${freshRequired.toString()} of allowance; it is ${allowanceNow.toString()}. Another approval is required.\n`
+            );
+            const topUpOk = await confirm(`Approve ${freshRequired.toString()} ${collateralAddr} to ${spender}?`, {
+              yes: opts.yes,
+              dryRun: opts.dryRun,
+            });
+            if (!topUpOk) {
+              process.stderr.write('Approval declined; aborting fill.\n');
+              process.exit(3);
+            }
+            await client.erc20.ensureAllowance(collateralAddr, spender, freshRequired);
           }
         }
 

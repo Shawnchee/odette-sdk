@@ -74,7 +74,9 @@ check('preview --type CALL_SPREAD: max payout is the width per contract, breakev
   // 1,000 USD width: payout = numContracts x 1000 (6 dp), and that is what the maker posts.
   assert.equal(BigInt(p.maxPayout), (BigInt(p.numContracts) * 1000_00000000n) / 100000000n);
   assert.equal(BigInt(p.makerCollateral), BigInt(p.maxPayout));
-  assert.ok(BigInt(p.totalCollateral) <= 5_000000n);
+  // The page rounds to nearest, so the premium can pass the amount by under one contract unit.
+  assert.ok(BigInt(p.totalCollateral) <= 5_001000n);
+  assert.ok(BigInt(p.totalCollateral) >= 4_999000n);
   const t = runCli([...noCfg, 'preview', ...CS, '--collateral', '5']);
   assert.equal(t.code, 0, t.stderr);
   assert.match(t.stdout, /label\s+.*Above 81,000 from 80,000/);
@@ -140,8 +142,9 @@ check('fill --dry-run of a spread: the real encoder puts the spread implementati
     assert.equal(args.order.isCall, isCall);
     assert.equal(args.order.isLong, false);
     assert.ok(args.order.numContracts > 0n);
-    // Premium never exceeds the 5 USDC budget.
-    assert.ok((args.order.price * args.order.numContracts) / 100000000n <= 5_000000n);
+    // Premium is the 5 USDC amount, to within one contract unit: the page rounds to nearest.
+    const premium = (args.order.price * args.order.numContracts) / 100000000n;
+    assert.ok(premium >= 4_999000n && premium <= 5_001000n, `premium ${premium}`);
     assert.equal(j.preview.product, sel === CS ? 'CALL_SPREAD' : 'PUT_SPREAD');
   }
 });

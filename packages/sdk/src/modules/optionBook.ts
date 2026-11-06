@@ -68,7 +68,7 @@ interface ERC20Reads {
 export interface FillPreview {
   numContracts: bigint;
   maxContracts: bigint;
-  /** Smallest valid size (0.50 USDC premium). */
+  /** The web app's smallest size. PUT, CALL: a whole percent of the batch. Spread: 0.50 USDC. RANGER: 1 USDC. */
   minContracts: bigint;
   /** Size increment the chain accepts. */
   step: bigint;
@@ -239,8 +239,8 @@ export class OptionBookModule {
   }
 
   /**
-   * Maximum valid size the signed order allows (contracts, 6 dp), rounded down
-   * to the step. Does not know what is already filled on chain; checkFill does.
+   * The web app's largest size (contracts, 6 dp): 99.99% of the batch, and a RANGER
+   * stops at 100 USDC. Does not know what is already filled on chain; checkFill does.
    */
   calculateMaxContracts(order: OdetteOrder): bigint {
     return maxContracts(this.listed(order));
@@ -272,7 +272,7 @@ export class OptionBookModule {
 
     let numContracts: bigint;
     if (usdcAmount !== undefined) {
-      // User specified how much to spend: floor to the step, cap at max.
+      // User specified how much to spend: sized as the web app does, capped at max.
       numContracts = contractsForUsdc(order, usdcAmount);
       if (numContracts === 0n) {
         throw createError(
@@ -281,7 +281,7 @@ export class OptionBookModule {
         );
       }
     } else {
-      // Fill max - use all available contracts
+      // No amount given: the web app's Max (99.99% of the batch; a Ranger stops at 100 USDC).
       numContracts = max;
     }
 
@@ -426,7 +426,12 @@ export class OptionBookModule {
     const token = new Contract(preview.collateralToken, ERC20_ABI, this.client.provider) as unknown as ERC20Reads;
     const [balance, allowance] = await Promise.all([token.balanceOf(taker), token.allowance(taker, preview.optionBook)]);
     add(11, 'taker-balance', balance >= premium,
-      balance >= premium ? usdc(balance) : `Your USDC balance is ${usdc(balance)}. This fill needs ${usdc(premium)}.`);
+      balance >= premium
+        ? usdc(balance)
+        : `Your USDC balance is ${usdc(balance)}. This fill needs ${usdc(premium)}.` +
+            (usdcAmount !== undefined && balance >= usdcAmount
+              ? ' A typed amount can round up by under one contract unit. Lower the amount by a cent.'
+              : ''));
     add(12, 'taker-allowance', allowance >= premium,
       allowance >= premium ? usdc(allowance) : `USDC approval is ${usdc(allowance)}. Approve at least ${usdc(premium)} first.`);
 

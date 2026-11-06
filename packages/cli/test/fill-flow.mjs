@@ -68,12 +68,59 @@ check('--approve-amount exact|max is accepted; a bad or too-small amount exits 2
   assert.equal(runCli([...noCfg, '--dry-run', 'fill', ...PUT, '--collateral', '5', '--approve-amount', 'lots'], { env }).code, 2);
 });
 
-check('default approval with --collateral is the budget, not the floored premium', () => {
+check('default approval with --collateral is the budget plus one step of premium', () => {
   const r = runCli([...noCfg, '--dry-run', '-o', 'json', 'fill', ...PUT, '--collateral', '5'], { env: { ODETTE_PRIVATE_KEY: key } });
   const j = JSON.parse(r.stdout);
   const amount = BigInt('0x' + j.approve.data.slice(-64));
-  assert.equal(amount, 5_000000n);
+  const slack = (BigInt(j.preview.step) * BigInt(j.preview.pricePerContract) + 99999999n) / 100000000n;
+  assert.ok(slack >= 1n);
+  assert.equal(amount, 5_000000n + slack);
   assert.ok(BigInt(j.preview.totalCollateral) <= amount);
+});
+
+check('a default approval still covers the fill after a cheaper re-quote', () => {
+  // The regression: the fresh quote rounds to nearest and can pass the budget, so an
+  // allowance of exactly the budget left the fill one unit short after a paid approval.
+  // BTC 80000/81000 at 11 USDC on this fixture: the fresh premium is 11.000095 USDC.
+  const SPREAD = ['--underlying', 'BTC', '--type', 'CALL_SPREAD', '--strikes', '80000,81000', '--expiry', '1793174400', '--collateral', '11'];
+  const yes = (allowance, extra = []) => {
+    rmSync(sentFile, { force: true });
+    return runCli([...noCfg, '--yes', 'fill', ...SPREAD, ...extra], {
+      env: { ...funded, STUB_SENT_FILE: sentFile, STUB_REQUOTE: 'down', STUB_TAKER_ALLOWANCE: allowance },
+    });
+  };
+  // The old default: an allowance of exactly the budget. This test must be able to fail.
+  const short = yes('11000000', ['--approve-amount', '11']);
+  assert.match(short.stderr, /Approve at least 11\.000095 USDC/);
+  assert.equal(sent(), null);
+  // The new default covers the same re-quote.
+  const dry = runCli([...noCfg, '--dry-run', '-o', 'json', 'fill', ...SPREAD], { env: { ODETTE_PRIVATE_KEY: key } });
+  const amount = BigInt('0x' + JSON.parse(dry.stdout).approve.data.slice(-64));
+  assert.ok(amount > 11_000095n, `approve ${amount}`);
+  const r = yes(amount.toString());
+  assert.doesNotMatch(r.stderr, /Approve at least/);
+  assert.ok(sent(), r.stderr);
+  assert.equal(sent().referrer.toLowerCase(), ODETTE.toLowerCase());
+});
+
+check('a re-quote that needs more than was approved asks for another approval before the fill', () => {
+  // BTC 80000/81000 at 11 USDC: approve the first quote's exact premium, then the fresh quote needs more.
+  const SPREAD = ['--underlying', 'BTC', '--type', 'CALL_SPREAD', '--strikes', '80000,81000', '--expiry', '1793174400', '--collateral', '11'];
+  const dry = runCli([...noCfg, '--dry-run', '-o', 'json', 'fill', ...SPREAD, '--approve-amount', 'exact'], { env: { ODETTE_PRIVATE_KEY: key } });
+  const exact = BigInt('0x' + JSON.parse(dry.stdout).approve.data.slice(-64));
+  rmSync(sentFile, { force: true });
+  const r = runCli([...noCfg, '--yes', 'fill', ...SPREAD, '--approve-amount', 'exact'], {
+    env: { ...funded, STUB_SENT_FILE: sentFile, STUB_REQUOTE: 'down', STUB_TAKER_ALLOWANCE: exact.toString() },
+  });
+  assert.match(r.stderr, /The re-quote needs \d+ of allowance; it is \d+\. Another approval is required\./, r.stderr);
+  // The stub refuses every send, so the approval fails and no fill goes out.
+  assert.notEqual(r.code, 0);
+  assert.equal(sent(), null);
+});
+
+check('an allowance below the amount plus slack asks for approval instead of risking a refused fill', () => {
+  const r = runCli([...noCfg, '--dry-run', '-o', 'json', 'fill', ...PUT, '--collateral', '5'], { env: { ODETTE_PRIVATE_KEY: key, STUB_TAKER_ALLOWANCE: '5000000' } });
+  assert.notEqual(JSON.parse(r.stdout).approve, null);
 });
 
 check('wallet approve: no --spender, USDC only', () => {
