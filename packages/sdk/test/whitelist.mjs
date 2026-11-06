@@ -63,19 +63,19 @@ check('reject messages are the PRD texts', () => {
   assert.equal(rejected[4].message, 'Order strikes do not match the option type.');
 });
 
-check('spreads are hidden by default', () => {
+check('spreads are listed by default (the web app shows them in its Chain view)', () => {
   assert.ok(callSpread && putSpread, 'fixture has a USDC CALL_SPREAD and PUT_SPREAD');
-  assert.equal(rejectReason(callSpread), 'unsupported-implementation');
-  assert.equal(rejectReason(putSpread), 'unsupported-implementation');
-  assert.equal(rejectReason(callSpread, { enableSpreads: false }), 'unsupported-implementation');
-});
-
-check('spreads pass only with enableSpreads: true', () => {
-  const a = checkWhitelist(callSpread, { enableSpreads: true, now: NOW });
-  const b = checkWhitelist(putSpread, { enableSpreads: true, now: NOW });
+  const a = checkWhitelist(callSpread, { now: NOW });
+  const b = checkWhitelist(putSpread, { now: NOW });
   assert.ok(a.ok && b.ok);
   assert.equal(a.order.product, 'CALL_SPREAD');
   assert.equal(b.order.product, 'PUT_SPREAD');
+  assert.equal(rejectReason(callSpread, { enableSpreads: true }), 'accepted');
+});
+
+check('enableSpreads: false hides both spreads', () => {
+  assert.equal(rejectReason(callSpread, { enableSpreads: false }), 'unsupported-implementation');
+  assert.equal(rejectReason(putSpread, { enableSpreads: false }), 'unsupported-implementation');
 });
 
 check('spreads on a non BTC/ETH market are refused even when enabled', () => {
@@ -180,8 +180,8 @@ check('hourly binaries are refused, even with spreads on', () => {
 });
 
 check('daily binaries on spread implementations follow the spread flag', () => {
-  assert.equal(rejectReason(book['daily-binary-spread']), 'unsupported-implementation');
-  assert.equal(rejectReason(book['daily-binary-spread'], { enableSpreads: true }), 'accepted');
+  assert.equal(rejectReason(book['daily-binary-spread']), 'accepted');
+  assert.equal(rejectReason(book['daily-binary-spread'], { enableSpreads: false }), 'unsupported-implementation');
 });
 
 check('RANGER 25 h out passes; RANGER 241 h out is outside the 3-day book', () => {

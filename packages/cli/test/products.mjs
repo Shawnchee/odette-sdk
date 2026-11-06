@@ -24,10 +24,10 @@ const json = (args) => {
   return JSON.parse(r.stdout);
 };
 
-check('orders: every row has product and underlying; all three products are listed', () => {
+check('orders: every row has product and underlying; all five products are listed', () => {
   const rows = json(['orders']);
-  assert.ok(rows.length >= 3);
-  assert.deepEqual([...new Set(rows.map((r) => r.product))].sort(), ['LINEAR_CALL', 'PUT', 'RANGER']);
+  assert.ok(rows.length >= 5);
+  assert.deepEqual([...new Set(rows.map((r) => r.product))].sort(), ['CALL_SPREAD', 'LINEAR_CALL', 'PUT', 'PUT_SPREAD', 'RANGER']);
   for (const r of rows) assert.ok(['ETH', 'BTC', 'SOL', 'XRP', 'BNB', 'AVAX', 'PAXG', 'DOGE'].includes(r.underlying), r.underlying);
 });
 
@@ -44,7 +44,7 @@ check('orders --type RANGER lists RANGER only; CALL excludes RANGER; PUT is PUT 
 check('orders --type with an unknown product exits 2', () => {
   const r = runCli([...noCfg, 'orders', '--type', 'FLY']);
   assert.equal(r.code, 2);
-  assert.match(r.stderr, /Expected PUT, CALL or RANGER/);
+  assert.match(r.stderr, /Expected SPREAD, PUT, CALL, RANGER, CALL_SPREAD or PUT_SPREAD/);
 });
 
 check('preview --type RANGER: exit 0, max payout is k per contract (not the 2k the maker posts)', () => {
@@ -67,7 +67,7 @@ check('preview table shows premium and maxPayout rows', () => {
 check('--type RANGER needs four --strikes (exit 2)', () => {
   const r = runCli([...noCfg, 'preview', '--underlying', 'BTC', '--type', 'RANGER', '--strike', '79000', '--expiry', '1793174400']);
   assert.equal(r.code, 2);
-  assert.match(r.stderr, /needs --strikes with 4 values/);
+  assert.match(r.stderr, /--type RANGER needs 4 strikes/);
 });
 
 check('max-contracts on a RANGER: exit 0 and a positive size', () => {

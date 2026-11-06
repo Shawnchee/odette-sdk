@@ -1,0 +1,1044 @@
+{
+  "_fixture": "Entries from the live feed at 2026-11-06T03:32:22.837420+00:00 (397 orders). Judge at now = 1793935942. Each _page verdict comes from the Odette web app's own functions (thetaverse origin/dev odette/config.js, run in a node vm). Signatures are placeholders; nonce and greeks removed.",
+  "now": 1793935942,
+  "chips": [
+    "ETH",
+    "BTC",
+    "XRP",
+    "BNB",
+    "SOL",
+    "AVAX"
+  ],
+  "totalFeedOrders": 397,
+  "pageShownCount": 188,
+  "pageReasons": {
+    "shown": 188,
+    "not-a-listed-product": 23,
+    "beyond-3-days": 44,
+    "collateral": 132,
+    "no-chip-today": 6,
+    "hourly-binary": 4
+  },
+  "data": {
+    "orders": [
+      {
+        "order": {
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": true,
+          "priceFeed": "0x64c911996D3c6aC71f9b455B1E8E7266BcbD848F",
+          "implementation": "0xa1d5f6b16A2e7f298F8d2cDF78F7779B4A20C4C2",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            7600000000000,
+            7700000000000,
+            7800000000000
+          ],
+          "expiry": 1794038400,
+          "price": "30214006071",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "not-a-listed-product",
+        "_page": {
+          "shown": false,
+          "why": "not-a-listed-product",
+          "asset": "BTC"
+        }
+      },
+      {
+        "order": {
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": true,
+          "priceFeed": "0x64c911996D3c6aC71f9b455B1E8E7266BcbD848F",
+          "implementation": "0xfaeD63f7040E65b79cF0Ae29706fDc423eE249A9",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            7600000000000,
+            7700000000000
+          ],
+          "expiry": 1794038400,
+          "price": "48894708750",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "spread-BTC-28h",
+        "_page": {
+          "shown": true,
+          "why": "shown",
+          "asset": "BTC"
+        }
+      },
+      {
+        "order": {
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": false,
+          "priceFeed": "0x64c911996D3c6aC71f9b455B1E8E7266BcbD848F",
+          "implementation": "0x4fd2C6D271cC6FF3EbD2027da9815a0608d03AA3",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            7400000000000,
+            7300000000000,
+            7200000000000
+          ],
+          "expiry": 1794038400,
+          "price": "13645034999",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "not-a-listed-product",
+        "_page": {
+          "shown": false,
+          "why": "not-a-listed-product",
+          "asset": "BTC"
+        }
+      },
+      {
+        "order": {
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": false,
+          "priceFeed": "0x64c911996D3c6aC71f9b455B1E8E7266BcbD848F",
+          "implementation": "0x02Fe0d9635e0139DBB3768a5d5Db404Fd84d9134",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            7400000000000,
+            7300000000000
+          ],
+          "expiry": 1794038400,
+          "price": "18518261785",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "spread-BTC-28h",
+        "_page": {
+          "shown": true,
+          "why": "shown",
+          "asset": "BTC"
+        }
+      },
+      {
+        "order": {
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": true,
+          "priceFeed": "0x64c911996D3c6aC71f9b455B1E8E7266BcbD848F",
+          "implementation": "0xfaeD63f7040E65b79cF0Ae29706fDc423eE249A9",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            7600000000000,
+            7700000000000
+          ],
+          "expiry": 1794124800,
+          "price": "55717226250",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "spread-BTC-52h",
+        "_page": {
+          "shown": true,
+          "why": "shown",
+          "asset": "BTC"
+        }
+      },
+      {
+        "order": {
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": false,
+          "priceFeed": "0x64c911996D3c6aC71f9b455B1E8E7266BcbD848F",
+          "implementation": "0x02Fe0d9635e0139DBB3768a5d5Db404Fd84d9134",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            7400000000000,
+            7300000000000
+          ],
+          "expiry": 1794124800,
+          "price": "21442197857",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "spread-BTC-52h",
+        "_page": {
+          "shown": true,
+          "why": "shown",
+          "asset": "BTC"
+        }
+      },
+      {
+        "order": {
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": true,
+          "priceFeed": "0x64c911996D3c6aC71f9b455B1E8E7266BcbD848F",
+          "implementation": "0xfaeD63f7040E65b79cF0Ae29706fDc423eE249A9",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            7600000000000,
+            7700000000000
+          ],
+          "expiry": 1794211200,
+          "price": "55717226249",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "spread-beyond-3-days",
+        "_page": {
+          "shown": false,
+          "why": "beyond-3-days",
+          "asset": "BTC"
+        }
+      },
+      {
+        "order": {
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": false,
+          "priceFeed": "0x64c911996D3c6aC71f9b455B1E8E7266BcbD848F",
+          "implementation": "0x02Fe0d9635e0139DBB3768a5d5Db404Fd84d9134",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            7400000000000,
+            7300000000000
+          ],
+          "expiry": 1794211200,
+          "price": "24366133928",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "spread-beyond-3-days",
+        "_page": {
+          "shown": false,
+          "why": "beyond-3-days",
+          "asset": "BTC"
+        }
+      },
+      {
+        "order": {
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": true,
+          "priceFeed": "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70",
+          "implementation": "0xfaeD63f7040E65b79cF0Ae29706fDc423eE249A9",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            230000000000,
+            240000000000
+          ],
+          "expiry": 1794038400,
+          "price": "888236357",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "spread-ETH-28h",
+        "_page": {
+          "shown": true,
+          "why": "shown",
+          "asset": "ETH"
+        }
+      },
+      {
+        "order": {
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": false,
+          "priceFeed": "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70",
+          "implementation": "0x02Fe0d9635e0139DBB3768a5d5Db404Fd84d9134",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            210000000000,
+            200000000000
+          ],
+          "expiry": 1794038400,
+          "price": "515750142",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "spread-ETH-28h",
+        "_page": {
+          "shown": true,
+          "why": "shown",
+          "asset": "ETH"
+        }
+      },
+      {
+        "order": {
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": true,
+          "priceFeed": "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70",
+          "implementation": "0xfaeD63f7040E65b79cF0Ae29706fDc423eE249A9",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            230000000000,
+            240000000000
+          ],
+          "expiry": 1794124800,
+          "price": "1186702875",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "spread-ETH-52h",
+        "_page": {
+          "shown": true,
+          "why": "shown",
+          "asset": "ETH"
+        }
+      },
+      {
+        "order": {
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": false,
+          "priceFeed": "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70",
+          "implementation": "0x02Fe0d9635e0139DBB3768a5d5Db404Fd84d9134",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            210000000000,
+            200000000000
+          ],
+          "expiry": 1794124800,
+          "price": "630361285",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "spread-ETH-52h",
+        "_page": {
+          "shown": true,
+          "why": "shown",
+          "asset": "ETH"
+        }
+      },
+      {
+        "order": {
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x4e65fE4DbA92790696d040ac24Aa414708F5c0AB",
+          "isCall": false,
+          "priceFeed": "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70",
+          "implementation": "0x6aD53DD058bea004829cCf58a282C21a7Df02DcA",
+          "isLong": true,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            180000000000
+          ],
+          "expiry": 1794556800,
+          "price": "423447873",
+          "numContracts": 2361565764,
+          "extraOptionData": "0x000000000000000000000000d4a0e0b9149bcee3c920d2e00b5de09138fd8bb7"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "non-usdc",
+        "_page": {
+          "shown": false,
+          "why": "collateral",
+          "asset": "ETH"
+        }
+      },
+      {
+        "order": {
+          "ticker": "DOGE-6NOV26-0.069-P",
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": false,
+          "priceFeed": "0x8422f3d3CAFf15Ca682939310d6A5e619AE08e57",
+          "implementation": "0x7355EB92dfb0503DB558a70c10843618932ab290",
+          "isLong": false,
+          "maxCollateralUsable": "7500000000",
+          "strikes": [
+            6900000
+          ],
+          "expiry": 1793952000,
+          "price": "690000",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "thursday-only-market",
+        "_page": {
+          "shown": false,
+          "why": "no-chip-today",
+          "asset": "DOGE"
+        }
+      },
+      {
+        "order": {
+          "ticker": "DOGE-6NOV26-0.07-P",
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": false,
+          "priceFeed": "0x8422f3d3CAFf15Ca682939310d6A5e619AE08e57",
+          "implementation": "0x7355EB92dfb0503DB558a70c10843618932ab290",
+          "isLong": false,
+          "maxCollateralUsable": "7500000000",
+          "strikes": [
+            7000000
+          ],
+          "expiry": 1793952000,
+          "price": "17051",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "thursday-only-market",
+        "_page": {
+          "shown": false,
+          "why": "no-chip-today",
+          "asset": "DOGE"
+        }
+      },
+      {
+        "order": {
+          "ticker": "DOGE-6NOV26-0.073-C",
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": true,
+          "priceFeed": "0x8422f3d3CAFf15Ca682939310d6A5e619AE08e57",
+          "implementation": "0x051791df68223AE173Fade5217C48875e36eef61",
+          "isLong": false,
+          "maxCollateralUsable": "7500000000",
+          "strikes": [
+            7300000
+          ],
+          "expiry": 1793952000,
+          "price": "18883",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "thursday-only-market",
+        "_page": {
+          "shown": false,
+          "why": "no-chip-today",
+          "asset": "DOGE"
+        }
+      },
+      {
+        "order": {
+          "ticker": "DOGE-6NOV26-0.074-C",
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": true,
+          "priceFeed": "0x8422f3d3CAFf15Ca682939310d6A5e619AE08e57",
+          "implementation": "0x051791df68223AE173Fade5217C48875e36eef61",
+          "isLong": false,
+          "maxCollateralUsable": "7500000000",
+          "strikes": [
+            7400000
+          ],
+          "expiry": 1793952000,
+          "price": "14458",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "thursday-only-market",
+        "_page": {
+          "shown": false,
+          "why": "no-chip-today",
+          "asset": "DOGE"
+        }
+      },
+      {
+        "order": {
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": true,
+          "priceFeed": "0x4b7836916781CAAfbb7Bd1E5FDd20ED544B453b1",
+          "implementation": "0xfaeD63f7040E65b79cF0Ae29706fDc423eE249A9",
+          "isLong": false,
+          "maxCollateralUsable": "5000000000",
+          "strikes": [
+            68000000000,
+            69000000000
+          ],
+          "expiry": 1794038400,
+          "price": "810327757",
+          "extraOptionData": "0x",
+          "type": "binaries",
+          "name": "BNB 690 Up 1D"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "spread-on-BNB",
+        "_page": {
+          "shown": false,
+          "why": "not-a-listed-product",
+          "asset": "BNB"
+        }
+      },
+      {
+        "order": {
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": true,
+          "priceFeed": "0x975043adBb80fc32276CbF9Bbcfd4A601a12462D",
+          "implementation": "0xfaeD63f7040E65b79cF0Ae29706fDc423eE249A9",
+          "isLong": false,
+          "maxCollateralUsable": "5000000000",
+          "strikes": [
+            8900000000,
+            9000000000
+          ],
+          "expiry": 1794038400,
+          "price": "69969771",
+          "extraOptionData": "0x",
+          "type": "binaries",
+          "name": "SOL 90 Up 1D"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "spread-on-SOL",
+        "_page": {
+          "shown": false,
+          "why": "not-a-listed-product",
+          "asset": "SOL"
+        }
+      },
+      {
+        "order": {
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": true,
+          "priceFeed": "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70",
+          "implementation": "0xfaeD63f7040E65b79cF0Ae29706fDc423eE249A9",
+          "isLong": false,
+          "maxCollateralUsable": "1000000000",
+          "strikes": [
+            220000000000,
+            225000000000
+          ],
+          "expiry": 1793941200,
+          "price": "3021412677",
+          "extraOptionData": "0x",
+          "type": "binaries",
+          "product": "hourly_binary",
+          "name": "ETH-06NOV26_5H-2250-UP",
+          "ticker": "ETH-6NOV26-2250-C"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "hourly-binary",
+        "_page": {
+          "shown": false,
+          "why": "hourly-binary",
+          "asset": "ETH"
+        }
+      },
+      {
+        "order": {
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": false,
+          "priceFeed": "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70",
+          "implementation": "0x02Fe0d9635e0139DBB3768a5d5Db404Fd84d9134",
+          "isLong": false,
+          "maxCollateralUsable": "1000000000",
+          "strikes": [
+            230000000000,
+            225000000000
+          ],
+          "expiry": 1793941200,
+          "price": "4950000000",
+          "extraOptionData": "0x",
+          "type": "binaries",
+          "product": "hourly_binary",
+          "name": "ETH-06NOV26_5H-2250-DOWN",
+          "ticker": "ETH-6NOV26-2250-C"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "hourly-binary",
+        "_page": {
+          "shown": false,
+          "why": "hourly-binary",
+          "asset": "ETH"
+        }
+      },
+      {
+        "order": {
+          "ticker": "BTC-9NOV26-75000/76000-RANGER",
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": true,
+          "priceFeed": "0x64c911996D3c6aC71f9b455B1E8E7266BcbD848F",
+          "implementation": "0x9980ec85bc6fE07340adb36c76FA093bb6D4FcBc",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            7450000000000,
+            7500000000000,
+            7600000000000,
+            7650000000000
+          ],
+          "expiry": 1794211200,
+          "price": "17891145796",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "beyond-3-days",
+        "_page": {
+          "shown": false,
+          "why": "beyond-3-days",
+          "asset": "BTC"
+        }
+      },
+      {
+        "order": {
+          "ticker": "BTC-9NOV26-76000/77000-RANGER",
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": true,
+          "priceFeed": "0x64c911996D3c6aC71f9b455B1E8E7266BcbD848F",
+          "implementation": "0x9980ec85bc6fE07340adb36c76FA093bb6D4FcBc",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            7550000000000,
+            7600000000000,
+            7700000000000,
+            7750000000000
+          ],
+          "expiry": 1794211200,
+          "price": "16922658507",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "beyond-3-days",
+        "_page": {
+          "shown": false,
+          "why": "beyond-3-days",
+          "asset": "BTC"
+        }
+      },
+      {
+        "order": {
+          "ticker": "BTC-7NOV26-75000/76000-RANGER",
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": true,
+          "priceFeed": "0x64c911996D3c6aC71f9b455B1E8E7266BcbD848F",
+          "implementation": "0x9980ec85bc6fE07340adb36c76FA093bb6D4FcBc",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            7450000000000,
+            7500000000000,
+            7600000000000,
+            7650000000000
+          ],
+          "expiry": 1794038400,
+          "price": "21935270396",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "ranger-zone-1794038400-75000",
+        "_page": {
+          "shown": true,
+          "why": "shown",
+          "asset": "BTC"
+        }
+      },
+      {
+        "order": {
+          "ticker": "BTC-7NOV26-75000/76000-RANGER",
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": true,
+          "priceFeed": "0x64c911996D3c6aC71f9b455B1E8E7266BcbD848F",
+          "implementation": "0x9980ec85bc6fE07340adb36c76FA093bb6D4FcBc",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            7400000000000,
+            7500000000000,
+            7600000000000,
+            7700000000000
+          ],
+          "expiry": 1794038400,
+          "price": "53204742347",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "ranger-zone-1794038400-75000",
+        "_page": {
+          "shown": true,
+          "why": "shown",
+          "asset": "BTC"
+        }
+      },
+      {
+        "order": {
+          "ticker": "BTC-8NOV26-75000/76000-RANGER",
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": true,
+          "priceFeed": "0x64c911996D3c6aC71f9b455B1E8E7266BcbD848F",
+          "implementation": "0x9980ec85bc6fE07340adb36c76FA093bb6D4FcBc",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            7450000000000,
+            7500000000000,
+            7600000000000,
+            7650000000000
+          ],
+          "expiry": 1794124800,
+          "price": "20061106468",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "ranger-zone-1794124800-75000",
+        "_page": {
+          "shown": true,
+          "why": "shown",
+          "asset": "BTC"
+        }
+      },
+      {
+        "order": {
+          "ticker": "BTC-8NOV26-75000/76000-RANGER",
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": true,
+          "priceFeed": "0x64c911996D3c6aC71f9b455B1E8E7266BcbD848F",
+          "implementation": "0x9980ec85bc6fE07340adb36c76FA093bb6D4FcBc",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            7400000000000,
+            7500000000000,
+            7600000000000,
+            7700000000000
+          ],
+          "expiry": 1794124800,
+          "price": "47819974701",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "ranger-zone-1794124800-75000",
+        "_page": {
+          "shown": true,
+          "why": "shown",
+          "asset": "BTC"
+        }
+      },
+      {
+        "order": {
+          "ticker": "ETH-8NOV26-2200/2300-RANGER",
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": true,
+          "priceFeed": "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70",
+          "implementation": "0x9980ec85bc6fE07340adb36c76FA093bb6D4FcBc",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            218000000000,
+            220000000000,
+            230000000000,
+            232000000000
+          ],
+          "expiry": 1794124800,
+          "price": "1387281059",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "ranger-zone-1794124800-2200",
+        "_page": {
+          "shown": true,
+          "why": "shown",
+          "asset": "ETH"
+        }
+      },
+      {
+        "order": {
+          "ticker": "ETH-8NOV26-2200/2300-RANGER",
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": true,
+          "priceFeed": "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70",
+          "implementation": "0x9980ec85bc6fE07340adb36c76FA093bb6D4FcBc",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            216000000000,
+            220000000000,
+            230000000000,
+            234000000000
+          ],
+          "expiry": 1794124800,
+          "price": "2908389529",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "ranger-zone-1794124800-2200",
+        "_page": {
+          "shown": true,
+          "why": "shown",
+          "asset": "ETH"
+        }
+      },
+      {
+        "order": {
+          "ticker": "ETH-6NOV26-2200-P",
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": false,
+          "priceFeed": "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70",
+          "implementation": "0x7355EB92dfb0503DB558a70c10843618932ab290",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            220000000000
+          ],
+          "expiry": 1793952000,
+          "price": "443084654",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "vanilla-ETH-4h",
+        "_page": {
+          "shown": true,
+          "why": "shown",
+          "asset": "ETH"
+        }
+      },
+      {
+        "order": {
+          "ticker": "ETH-7NOV26-2050-P",
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": false,
+          "priceFeed": "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70",
+          "implementation": "0x7355EB92dfb0503DB558a70c10843618932ab290",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            205000000000
+          ],
+          "expiry": 1794038400,
+          "price": "302020195",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "vanilla-ETH-28h",
+        "_page": {
+          "shown": true,
+          "why": "shown",
+          "asset": "ETH"
+        }
+      },
+      {
+        "order": {
+          "ticker": "ETH-8NOV26-2050-P",
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": false,
+          "priceFeed": "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70",
+          "implementation": "0x7355EB92dfb0503DB558a70c10843618932ab290",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            205000000000
+          ],
+          "expiry": 1794124800,
+          "price": "516302261",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "vanilla-ETH-52h",
+        "_page": {
+          "shown": true,
+          "why": "shown",
+          "asset": "ETH"
+        }
+      },
+      {
+        "order": {
+          "ticker": "BTC-6NOV26-75000-P",
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": false,
+          "priceFeed": "0x64c911996D3c6aC71f9b455B1E8E7266BcbD848F",
+          "implementation": "0x7355EB92dfb0503DB558a70c10843618932ab290",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            7500000000000
+          ],
+          "expiry": 1793952000,
+          "price": "8320613905",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "vanilla-BTC-4h",
+        "_page": {
+          "shown": true,
+          "why": "shown",
+          "asset": "BTC"
+        }
+      },
+      {
+        "order": {
+          "ticker": "BTC-7NOV26-72000-P",
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": false,
+          "priceFeed": "0x64c911996D3c6aC71f9b455B1E8E7266BcbD848F",
+          "implementation": "0x7355EB92dfb0503DB558a70c10843618932ab290",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            7200000000000
+          ],
+          "expiry": 1794038400,
+          "price": "8156179381",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "vanilla-BTC-28h",
+        "_page": {
+          "shown": true,
+          "why": "shown",
+          "asset": "BTC"
+        }
+      },
+      {
+        "order": {
+          "ticker": "BTC-8NOV26-72000-P",
+          "maker": "0xEcda1D002FBC55F2Fd3386bB4B9B95F859f3C39E",
+          "orderExpiryTimestamp": 1793936060,
+          "collateral": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "isCall": false,
+          "priceFeed": "0x64c911996D3c6aC71f9b455B1E8E7266BcbD848F",
+          "implementation": "0x7355EB92dfb0503DB558a70c10843618932ab290",
+          "isLong": false,
+          "maxCollateralUsable": "10000000000",
+          "strikes": [
+            7200000000000
+          ],
+          "expiry": 1794124800,
+          "price": "13756104612",
+          "extraOptionData": "0x"
+        },
+        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "chainId": 8453,
+        "optionBookAddress": "0x1bDff855d6811728acaDC00989e79143a2bdfDed",
+        "_case": "vanilla-BTC-52h",
+        "_page": {
+          "shown": true,
+          "why": "shown",
+          "asset": "BTC"
+        }
+      }
+    ]
+  }
+}

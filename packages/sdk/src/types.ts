@@ -5,7 +5,7 @@
 // Trimmed to the order shape the Odette feed sends. OdetteOrder and
 // RawFeedOrder are Odette additions.
 
-/** Products the SDK knows. CALL_SPREAD and PUT_SPREAD are hidden unless enabled. */
+/** Products the SDK knows. CALL_SPREAD and PUT_SPREAD are listed unless `enableSpreads` is false. */
 export type ProductKind = 'PUT' | 'LINEAR_CALL' | 'RANGER' | 'CALL_SPREAD' | 'PUT_SPREAD';
 
 /**

@@ -68,7 +68,7 @@ interface ERC20Reads {
 export interface FillPreview {
   numContracts: bigint;
   maxContracts: bigint;
-  /** Smallest valid size (0.50 USDC premium). */
+  /** The web app's smallest size. PUT, CALL: a whole percent of the batch. Spread: 0.50 USDC. RANGER: 1 USDC. */
   minContracts: bigint;
   /** Size increment the chain accepts. */
   step: bigint;
@@ -124,6 +124,21 @@ const KNOWN_BOOKS = new Set(KNOWN_OPTION_BOOKS.map((a) => a.toLowerCase()));
 
 function usdc(amount: bigint): string {
   return `${fromBigInt(amount, USDC.decimals)} USDC`;
+}
+
+/** Says what failed, the rule behind it, and an amount that works (the minimum, up to the next cent). */
+function belowMinimumMessage(order: OdetteOrder, amount: bigint, smallestCost: bigint): string {
+  const rule =
+    order.product === 'RANGER'
+      ? smallestCost < 990_000n
+        ? 'A RANGER starts at 1 USDC, or at the whole order when it costs less.'
+        : 'A RANGER starts at 1 USDC.'
+      : order.product === 'CALL_SPREAD' || order.product === 'PUT_SPREAD'
+        ? 'A spread starts at 0.50 USDC.'
+        : 'A PUT or CALL starts at a whole percent of the order, at least 0.50 USDC.';
+  const cent = 10_000n;
+  const nextCent = ((smallestCost + cent - 1n) / cent) * cent;
+  return `${usdc(amount)} is below the minimum for this order. The smallest fill costs ${usdc(smallestCost)}. ${rule} Use ${usdc(nextCent)} or more.`;
 }
 
 /**
@@ -226,8 +241,8 @@ export class OptionBookModule {
 
   /**
    * Re-derive the order from its signed fields with this client's product
-   * settings. Refuses a hidden product (CALL_SPREAD / PUT_SPREAD unless
-   * enableSpreads) and replaces caller-supplied labels (product, underlying,
+   * settings. Refuses a hidden product (CALL_SPREAD / PUT_SPREAD when
+   * enableSpreads is false) and replaces caller-supplied labels (product, underlying,
    * optionBook) with the ones the implementation and price feed imply.
    */
   private listed(order: OdetteOrder): OdetteOrder {
@@ -239,8 +254,8 @@ export class OptionBookModule {
   }
 
   /**
-   * Maximum valid size the signed order allows (contracts, 6 dp), rounded down
-   * to the step. Does not know what is already filled on chain; checkFill does.
+   * The web app's largest size (contracts, 6 dp): 99.99% of the batch, and a RANGER
+   * stops at 100 USDC. Does not know what is already filled on chain; checkFill does.
    */
   calculateMaxContracts(order: OdetteOrder): bigint {
     return maxContracts(this.listed(order));
@@ -272,16 +287,16 @@ export class OptionBookModule {
 
     let numContracts: bigint;
     if (usdcAmount !== undefined) {
-      // User specified how much to spend: floor to the step, cap at max.
+      // User specified how much to spend: sized as the web app does, capped at max.
       numContracts = contractsForUsdc(order, usdcAmount);
       if (numContracts === 0n) {
         throw createError(
           'INVALID_PARAMS',
-          `${usdc(usdcAmount)} is below the minimum. The smallest fill costs ${usdc(premiumForContracts(order, min))}.`
+          belowMinimumMessage(order, usdcAmount, premiumForContracts(order, min))
         );
       }
     } else {
-      // Fill max - use all available contracts
+      // No amount given: the web app's Max (99.99% of the batch; a Ranger stops at 100 USDC).
       numContracts = max;
     }
 
@@ -426,7 +441,12 @@ export class OptionBookModule {
     const token = new Contract(preview.collateralToken, ERC20_ABI, this.client.provider) as unknown as ERC20Reads;
     const [balance, allowance] = await Promise.all([token.balanceOf(taker), token.allowance(taker, preview.optionBook)]);
     add(11, 'taker-balance', balance >= premium,
-      balance >= premium ? usdc(balance) : `Your USDC balance is ${usdc(balance)}. This fill needs ${usdc(premium)}.`);
+      balance >= premium
+        ? usdc(balance)
+        : `Your USDC balance is ${usdc(balance)}. This fill needs ${usdc(premium)}.` +
+            (usdcAmount !== undefined && balance >= usdcAmount
+              ? ' A typed amount can round up by under one contract unit. Lower the amount by a cent.'
+              : ''));
     add(12, 'taker-allowance', allowance >= premium,
       allowance >= premium ? usdc(allowance) : `USDC approval is ${usdc(allowance)}. Approve at least ${usdc(premium)} first.`);
 

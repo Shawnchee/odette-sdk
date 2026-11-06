@@ -11,7 +11,7 @@ list and sends your signed transaction straight to Base.
 
 ## What you can do
 
-- See the options Odette lists right now: PUT, CALL (LINEAR_CALL) and RANGER.
+- See the options Odette lists right now: PUT, CALL (LINEAR_CALL), RANGER, CALL_SPREAD and PUT_SPREAD.
 - Check a trade before you make it.
 - Buy an option with USDC.
 
@@ -61,8 +61,14 @@ odette wallet balance    # your ETH and USDC
 odette orders --underlying ETH --type PUT
 ```
 
-Each row is one option: its strike price, the expiry date and time, and the price of one contract.
-`--type` can be `PUT`, `CALL` or `RANGER`.
+Each row is one option: its strike price, the expiry date and time, the price of one contract,
+and a `label` in the words the Odette app uses ("Below 2,180", "Above 2,400 from 2,300 · 11.3×").
+`--type` can be `PUT`, `CALL`, `RANGER`, `CALL_SPREAD`, `PUT_SPREAD` or `SPREAD` (both spreads).
+`odette orders spread` is the same as `odette orders --type SPREAD`.
+
+Each row also has `minCost`, the least you can spend on that order. The limits are the Odette
+app's: a RANGER costs 1 to 100 USDC, a spread starts at 0.50 USDC, and a PUT or CALL starts at a
+whole percent of the order, which is 0.50 USDC or more. The largest size is 99.99% of the order.
 
 **2. Check the trade.** Pick a strike and expiry from the list. `--collateral` is how
 much USDC you want to spend. (The strike and expiry below are examples: copy real
@@ -100,8 +106,19 @@ odette orders --underlying BTC --type RANGER
 odette preview --underlying BTC --type RANGER --strikes 78500,79000,80000,80500 --expiry 1793174400 --collateral 5
 ```
 
-`preview` shows what you pay (`premium`) and the most you can be paid at expiry (`maxPayout`). In `-o json`
-output the premium is the `totalCollateral` field (the name upstream uses).
+**Buying a spread.** A call spread pays from its strike up to its cap, where the payout is the
+width per contract (the app says "Above 2,400 from 2,300"). A put spread pays from its strike
+down to its cap. Pass both strikes, strike first, then the cap, with `--type CALL_SPREAD` or
+`--type PUT_SPREAD`. Spreads trade on BTC and ETH only.
+
+```sh
+odette orders --underlying ETH --type CALL_SPREAD
+odette preview --underlying ETH --type CALL_SPREAD --strikes 2300,2400 --expiry 1794038400 --collateral 5
+```
+
+`preview` shows what you pay (`premium`), the most you can be paid at expiry (`maxPayout`) and,
+for a call, put or spread, the app's `breakeven` (strike plus or minus the price per contract). In
+`-o json` output the premium is the `totalCollateral` field (the name upstream uses).
 
 ## Useful flags
 
