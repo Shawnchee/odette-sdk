@@ -26,11 +26,12 @@ const client = new OdetteClient({ provider });
 const EMPTY_TAKER = Wallet.createRandom().address;
 
 const orders = await client.api.fetchOrders();
+const PRODUCTS = ['PUT', 'LINEAR_CALL', 'RANGER', 'CALL_SPREAD', 'PUT_SPREAD'];
 
 await check('live feed returns Odette orders on r12', async () => {
   assert.ok(orders.length > 0, 'no Odette orders in the live book');
   for (const o of orders) {
-    assert.ok(['PUT', 'LINEAR_CALL', 'RANGER'].includes(o.product), o.product);
+    assert.ok(PRODUCTS.includes(o.product), o.product);
     assert.equal(o.optionBook, OPTION_BOOK_R12);
   }
   console.log(`  ${orders.length} orders: ${[...new Set(orders.map((o) => o.product))].join(', ')}`);
@@ -38,7 +39,7 @@ await check('live feed returns Odette orders on r12', async () => {
 
 await check('one order per product: calldata carries ODETTE_REFERRER; checks 1-10 pass on chain', async () => {
   const iface = new Interface(OPTION_BOOK_ABI);
-  for (const product of ['PUT', 'LINEAR_CALL', 'RANGER']) {
+  for (const product of PRODUCTS) {
     const o = orders.find((x) => x.product === product);
     if (!o) {
       console.log(`  ${product}: none listed now`);
