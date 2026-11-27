@@ -83,9 +83,9 @@ because of a callback or a logger.
 - **Base only** (chain 8453).
 - The contracts and the order feed are Thetanuts Finance's. Odette is the app on top.
 - The referrer tag is a default in this SDK, not enforced by the contract.
-- **Found a security problem?** Don't open a public issue. See [SECURITY.md](https://github.com/Shawnchee/odette-sdk/blob/main/SECURITY.md).
+- **Found a security problem?** Don't open a public issue. See [SECURITY.md](https://github.com/Thetanuts-Finance/odette-sdk/blob/main/SECURITY.md).
 
 ## License
 
 MIT, Copyright (c) 2026 Thetanuts Finance. Parts are adapted from
-[thetanuts-sdk](https://github.com/Thetanuts-Finance/thetanuts-sdk); see [NOTICE.md](https://github.com/Shawnchee/odette-sdk/blob/main/NOTICE.md).
+[thetanuts-sdk](https://github.com/Thetanuts-Finance/thetanuts-sdk); see [NOTICE.md](https://github.com/Thetanuts-Finance/odette-sdk/blob/main/NOTICE.md).

@@ -31,7 +31,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Shawnchee/odette-sdk.git",
+    "url": "git+https://github.com/Thetanuts-Finance/odette-sdk.git",
     "directory": "packages/cli"
   },
   "publishConfig": {
