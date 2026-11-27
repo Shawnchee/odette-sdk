@@ -3,6 +3,7 @@
 // Changes: comments; fetchEthUsdSafe is bounded by a timeout (a stalled price
 // lookup hid the receipt of a completed fill, inviting a duplicate buy).
 // redactSecrets is exported for raw error text printed outside renderError.
+// registerRpcUrl: the exact configured RPC URL is redacted too.
 import Table from 'cli-table3';
 import pc from 'picocolors';
 
@@ -271,13 +272,29 @@ function renderYaml(data: unknown, indent = 0): string {
   return `${pad}${toCellString(data)}`;
 }
 
+/** Apply redactSecrets to every string in plain objects and arrays. */
+function redactDeep(v: unknown): unknown {
+  if (typeof v === 'string') return redactSecrets(v);
+  if (Array.isArray(v)) return v.map(redactDeep);
+  if (v !== null && typeof v === 'object') {
+    const proto = Object.getPrototypeOf(v);
+    if (proto !== Object.prototype && proto !== null) return v;
+    const out: Record<string, unknown> = {};
+    for (const [k, val] of Object.entries(v)) out[k] = redactDeep(val);
+    return out;
+  }
+  return v;
+}
+
 /**
  * Print a value to stdout in the user's selected format. `table` is the
  * default; implementer commands should pass the raw SDK return as `data` and
  * let the user pick `--output json` / `csv` / `yaml`.
  */
-export function render(data: unknown, opts: RenderOptions = {}): void {
+export function render(input: unknown, opts: RenderOptions = {}): void {
   const fmt: OutputFormat = opts.output ?? 'table';
+  // SDK check messages embed ethers errors, which hold the RPC URL.
+  const data = redactDeep(input);
 
   if (fmt === 'json') {
     process.stdout.write(JSON.stringify(data, jsonReplacer, 2) + '\n');
@@ -429,11 +446,47 @@ export function buildTxReceiptPayload(
  *     20+ chars of safe URL chars — the standard shape for hosted RPCs.
  *   - `apiKey=<KEY>` query params (16+ chars) — generic key-in-querystring
  *     pattern used by several JSON-RPC providers.
+ *   - Every URL passed to registerRpcUrl, whatever its key format.
  * Intentionally narrow: we don't try to redact every possible secret, just
  * the ones we know reliably leak into ethers' error surface.
  */
+// RPC URLs this process uses. The shape-based rules below miss many hosted
+// RPC key formats (`/base/<key>`, `?api-key=`), so the exact URL is redacted too.
+const knownRpcUrls = new Set<string>();
+
+/**
+ * Register an RPC URL so redactSecrets removes it from output. Only the
+ * origin stays visible. A URL with no path, query or credentials is not
+ * registered: a key in the hostname itself stays visible.
+ */
+export function registerRpcUrl(url: string): void {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return;
+  }
+  const hasSecretPart =
+    (parsed.pathname !== '' && parsed.pathname !== '/') || parsed.search !== '' || parsed.username !== '' || parsed.password !== '';
+  if (!hasSecretPart) return;
+  knownRpcUrls.add(url);
+  // ethers reports the URL it parsed, which can differ (a trailing slash).
+  knownRpcUrls.add(parsed.href);
+}
+
+function redactKnownRpcUrls(s: string): string {
+  let out = s;
+  // Longest first, so a URL that prefixes another does not leave a tail.
+  for (const url of [...knownRpcUrls].sort((a, b) => b.length - a.length)) {
+    const escaped = url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // Match the whole URL only, so a registered prefix does not split a longer URL.
+    out = out.replace(new RegExp(escaped + '(?![A-Za-z0-9_\\-.~%])', 'g'), `${new URL(url).origin}/<redacted>`);
+  }
+  return out;
+}
+
 export function redactSecrets(s: string): string {
-  return s
+  return redactKnownRpcUrls(s)
     .replace(/Bearer\s+[A-Za-z0-9_\-\.=]+/g, 'Bearer <redacted>')
     .replace(/\/v[0-9]+\/[A-Za-z0-9_\-]{20,}/g, (m) => {
       const v = m.split('/')[1];
