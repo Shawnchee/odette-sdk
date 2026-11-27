@@ -80,6 +80,14 @@ export function sizeStep(order: OdetteOrder): bigint {
 
 /** Odette's minimum premium: 0.50 USDC (MIN_PREMIUM_USD, config.js:145). */
 export const MIN_PREMIUM_USDC = 500_000n;
+/**
+ * Largest amount a fill may cost above the typed USDC budget: 0.01 USDC.
+ * A typed amount rounds to the nearest valid size, so the premium can pass the
+ * budget a little. The order's strike sets the size step, so an order with a
+ * large step could round a small budget up to a large fill. Above this margin
+ * the SDK refuses the fill.
+ */
+export const BUDGET_TOLERANCE_USDC = 10_000n;
 /** The Ranger ticket starts at 1 USDC of premium (ticketAmountBounds, ui_interactions.js). */
 export const MIN_RANGER_PREMIUM_USDC = 1_000_000n;
 /** The Ranger ticket stops at 100 USDC of premium (ticketAmountBounds, ui_interactions.js). */

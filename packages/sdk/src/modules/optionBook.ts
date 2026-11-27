@@ -34,6 +34,7 @@ import {
   maxContracts,
   minContracts,
   MIN_PREMIUM_USDC,
+  BUDGET_TOLERANCE_USDC,
   premiumForContracts,
   sizeStep,
 } from '../sizing.js';
@@ -269,6 +270,7 @@ export class OptionBookModule {
    * @returns Preview of the fill: numContracts, premium, sizing, referrer
    *
    * @throws {OdetteError} INVALID_PARAMS when the amount does not reach the 0.50 USDC minimum
+   * @throws {OdetteError} INVALID_PARAMS when the smallest valid size costs more than the amount + 0.01 USDC
    */
   previewFillOrder(input: OdetteOrder, usdcAmount?: bigint): FillPreview {
     if (!input.rawApiData) {
@@ -293,6 +295,23 @@ export class OptionBookModule {
         throw createError(
           'INVALID_PARAMS',
           belowMinimumMessage(order, usdcAmount, premiumForContracts(order, min))
+        );
+      }
+      // The typed amount is a spending cap. Rounding to the order's step must
+      // not turn it into a larger fill. Try one step down first: an honest
+      // order with a small step then still fills just under the budget.
+      const cap = usdcAmount + BUDGET_TOLERANCE_USDC;
+      if (premiumForContracts(order, numContracts) > cap) {
+        const down = numContracts - sizeStep(order);
+        if (down >= min && premiumForContracts(order, down) <= cap) numContracts = down;
+      }
+      const premium = premiumForContracts(order, numContracts);
+      if (premium > cap) {
+        throw createError(
+          'INVALID_PARAMS',
+          `This fill costs ${fromBigInt(premium, USDC.decimals)} USDC, above your ${fromBigInt(usdcAmount, USDC.decimals)} USDC amount. ` +
+            `The order trades in steps of ${fromBigInt(sizeStep(order), USDC.decimals)} contracts. ` +
+            `Enter at least ${fromBigInt(premium, USDC.decimals)} USDC to accept this cost, or pick another order.`
         );
       }
     } else {
