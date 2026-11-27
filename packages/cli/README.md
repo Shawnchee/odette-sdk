@@ -140,7 +140,7 @@ Exit codes for scripts: `0` ok, `1` the trade or a check failed, `2` a wrong com
 ## Good to know
 
 - **Base only** (chain 8453).
-- **Found a security problem?** Don't open a public issue. See [SECURITY.md](https://github.com/Shawnchee/odette-sdk/blob/main/SECURITY.md).
+- **Found a security problem?** Don't open a public issue. See [SECURITY.md](https://github.com/Thetanuts-Finance/odette-sdk/blob/main/SECURITY.md).
 - **Every trade is tagged with Odette's referrer**, `0x94D784e81A5c8cA6E19629C73217b61a256Ea1c7`.
   You can't change it in these tools. The contract itself does not enforce the tag.
 - Orders and contracts come from Thetanuts Finance. Odette is the app on top.
@@ -148,4 +148,4 @@ Exit codes for scripts: `0` ok, `1` the trade or a check failed, `2` a wrong com
 ## License
 
 MIT, Copyright (c) 2026 Thetanuts Finance. Parts are adapted from
-[thetanuts-sdk](https://github.com/Thetanuts-Finance/thetanuts-sdk); see [NOTICE.md](https://github.com/Shawnchee/odette-sdk/blob/main/NOTICE.md).
+[thetanuts-sdk](https://github.com/Thetanuts-Finance/thetanuts-sdk); see [NOTICE.md](https://github.com/Thetanuts-Finance/odette-sdk/blob/main/NOTICE.md).

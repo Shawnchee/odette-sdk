@@ -4,7 +4,7 @@
 
 If you find a security issue in `@odette-fi/sdk` or
 `@odette-fi/cli`, report it privately:
-**[Report a vulnerability](https://github.com/Shawnchee/odette-sdk/security/advisories/new)**
+**[Report a vulnerability](https://github.com/Thetanuts-Finance/odette-sdk/security/advisories/new)**
 (the repo's Security tab → "Report a vulnerability").
 
 **Do not open a public issue for a security problem.** A public issue shows the
@@ -25,7 +25,7 @@ Include:
 - A dependency vulnerability that these packages actually reach.
 
 Bugs that don't affect funds or keys go to normal
-[GitHub issues](https://github.com/Shawnchee/odette-sdk/issues).
+[GitHub issues](https://github.com/Thetanuts-Finance/odette-sdk/issues).
 
 ### What to expect
 
