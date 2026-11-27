@@ -36,4 +36,5 @@ soon as possible. We credit you in the release notes if you want.
 
 | Version | Supported |
 |---------|-----------|
-| `0.1.x` | Yes |
+| `0.2.x` | Yes |
+| `0.1.x` | No: upgrade to 0.2.1 or later |

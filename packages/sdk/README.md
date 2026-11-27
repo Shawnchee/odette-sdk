@@ -67,7 +67,10 @@ Without `usdc`, preview, encode and fill use the order's **maximum** size.
 - USDC amounts and contract sizes have 6 decimals (`5_000000n` = 5 USDC).
 - Prices and strikes are USD with 8 decimals.
 - The amount you pass is the USDC premium you want to spend, not a number of
-  contracts. Sizes round down to the contract's step; the minimum premium is 0.50 USDC.
+  contracts. It rounds to the nearest valid size (the order's step); the minimum premium is 0.50 USDC.
+- The amount is a spending cap. A fill never costs more than the amount + 0.01 USDC
+  (`BUDGET_TOLERANCE_USDC`). If the order's step is too large for that, preview, check,
+  encode and fill refuse with `INVALID_PARAMS` and name the amount that works.
 
 ## Errors
 
