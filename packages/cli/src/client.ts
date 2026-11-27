@@ -9,6 +9,7 @@ import { OdetteClient, ODETTE_REFERRER } from '@odette-fi/sdk';
 import type { OptionValues } from 'commander';
 import { loadConfig, ConfigError, type Config } from './config.js';
 import { DEFAULT_CHAIN_ID, DEFAULT_RPC_URL } from './defaults.js';
+import { registerRpcUrl } from './output.js';
 
 /**
  * Resolution order for any setting (descending priority):
@@ -117,6 +118,7 @@ export function getClient(opts: OptionValues): GetClientResult {
 
   const chainId = resolveChainId(cfg);
   const rpcUrl = resolveRpcUrl(opts, cfg, chainId);
+  registerRpcUrl(rpcUrl);
   const privateKey = resolvePrivateKey(cfg);
   const feedUrl = process.env.ODETTE_FEED_URL;
 

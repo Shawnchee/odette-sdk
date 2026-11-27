@@ -61,6 +61,7 @@ export {
   chainMaxContracts,
   minContracts,
   MIN_PREMIUM_USDC,
+  BUDGET_TOLERANCE_USDC,
   MIN_RANGER_PREMIUM_USDC,
   MAX_RANGER_PREMIUM_USDC,
   quantum,

@@ -24,7 +24,8 @@ const fixture = readFileSync(new URL('../../../sdk/test/fixtures/feed-sample.jso
 let feedReads = 0;
 globalThis.fetch = async () => {
   feedReads += 1;
-  const body = JSON.parse(fixture);
+  // STUB_FEED_FILE replaces the recorded feed, e.g. with a crafted order.
+  const body = JSON.parse(process.env.STUB_FEED_FILE ? readFileSync(process.env.STUB_FEED_FILE, 'utf8') : fixture);
   const move = process.env.STUB_REQUOTE;
   if (feedReads > 1 && (move === 'up' || move === 'down')) {
     for (const e of body.data.orders) {

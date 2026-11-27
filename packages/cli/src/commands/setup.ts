@@ -12,7 +12,7 @@ import { defaultConfigPath, loadConfig, saveConfig, stopForDryRun, type Config }
 import { DEFAULT_CHAIN_ID, DEFAULT_RPC_URL } from '../defaults.js';
 import { getGlobalOpts } from '../options.js';
 import { getClient } from '../client.js';
-import { render, renderError, redactSecrets } from '../output.js';
+import { render, renderError, redactSecrets, registerRpcUrl } from '../output.js';
 
 const PRIVATE_KEY_REGEX = /^0x[0-9a-fA-F]{64}$/;
 
@@ -66,6 +66,7 @@ async function promptAndValidateRpc(
     if (!url) {
       throw new Error('Setup aborted (no RPC URL provided)');
     }
+    registerRpcUrl(url);
     try {
       const provider = new ethers.JsonRpcProvider(url);
       const network = await provider.getNetwork();

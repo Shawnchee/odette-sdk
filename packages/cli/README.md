@@ -89,8 +89,13 @@ odette fill --underlying ETH --type PUT --strike 2200 --expiry 1793174400 --coll
 ```
 
 The first time, `odette` asks you to let the Odette contract take your USDC. That
-permission is called an approval. Then it asks you to confirm the trade. Answer `y`
+permission is called an approval. By default it approves this trade's premium plus
+0.01 USDC, never more than `--collateral` plus 0.01 USDC. Then it asks you to confirm the trade. Answer `y`
 to both. When it's done, it prints the transaction link.
+
+`--collateral` is a cap: a trade never costs more than it plus 0.01 USDC. If an order
+only trades in steps too large for your amount, `odette` refuses (exit 2) and names
+an amount that works.
 
 Prices update about once a minute. If the price moves while you're deciding, `odette`
 shows the new price and asks you again.

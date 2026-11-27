@@ -3,6 +3,30 @@
 All notable changes to `@odette-fi/sdk` and `@odette-fi/cli`.
 Both packages share one version.
 
+## 0.2.1 — 2026-11-27
+
+### Security
+
+- SDK: a typed USDC amount is now a spending cap. Before, the size rounded up to the
+  order's step, and the strike sets the step: a crafted order (strike 5.00000001 USD)
+  could turn a 5 USDC amount into a 490 USDC fill, and `checkFill` passed it. Now
+  `previewFillOrder`, `checkFill`, `encodeFillOrder` and `fillOrder` refuse a fill that
+  costs more than the amount + 0.01 USDC (`BUDGET_TOLERANCE_USDC`, exported). They first
+  try one step smaller, so an honest order is not refused. The error names an amount that works.
+- CLI: `fill` approves this fill's premium plus 0.01 USDC by default, never more than
+  `--collateral` plus 0.01 USDC. Before, it approved the whole `--collateral` plus one step,
+  even when the fill was capped far below it (`--collateral 1000000` on a 10.50 USDC
+  maximum fill approved 1,000,000 USDC). A `--collateral` the order cannot fill within
+  the cap exits 2 before any approval.
+- CLI: the configured RPC URL is redacted from all output (errors and stdout, every `-o`
+  format), whatever its key format. Before, only some provider shapes were redacted, and
+  pre-send check messages on stdout could print the full URL with its API key.
+
+### Changed
+
+- SDK: `previewFillOrder` and `encodeFillOrder` can throw `INVALID_PARAMS` for an amount
+  the order's step cannot fill within the cap. On honest orders this does not happen.
+
 ## 0.2.0 — 2026-11-06
 
 ### Breaking
