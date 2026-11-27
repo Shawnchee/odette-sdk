@@ -68,14 +68,24 @@ check('--approve-amount exact|max is accepted; a bad or too-small amount exits 2
   assert.equal(runCli([...noCfg, '--dry-run', 'fill', ...PUT, '--collateral', '5', '--approve-amount', 'lots'], { env }).code, 2);
 });
 
-check('default approval with --collateral is the budget plus one step of premium', () => {
+check('default approval with --collateral is the budget plus 0.01 USDC', () => {
   const r = runCli([...noCfg, '--dry-run', '-o', 'json', 'fill', ...PUT, '--collateral', '5'], { env: { ODETTE_PRIVATE_KEY: key } });
   const j = JSON.parse(r.stdout);
   const amount = BigInt('0x' + j.approve.data.slice(-64));
-  const slack = (BigInt(j.preview.step) * BigInt(j.preview.pricePerContract) + 99999999n) / 100000000n;
-  assert.ok(slack >= 1n);
-  assert.equal(amount, 5_000000n + slack);
+  assert.equal(amount, 5_000000n + 10_000n);
   assert.ok(BigInt(j.preview.totalCollateral) <= amount);
+});
+
+check('a fill capped at the order maximum approves that fill, not the whole budget', () => {
+  // Codex review: --collateral 1000000 on a 10.50 USDC max fill approved 1,000,000 USDC.
+  const r = runCli([...noCfg, '--dry-run', '-o', 'json', 'fill', ...PUT, '--collateral', '1000000'], { env: { ODETTE_PRIVATE_KEY: key } });
+  assert.equal(r.code, 0, r.stderr);
+  const j = JSON.parse(r.stdout);
+  const amount = BigInt('0x' + j.approve.data.slice(-64));
+  const premium = BigInt(j.preview.totalCollateral);
+  assert.ok(premium < 1_000_000_000000n / 1000n, `premium ${premium}`);
+  assert.ok(amount >= premium, `approve ${amount} < premium ${premium}`);
+  assert.ok(amount <= premium + 1n + 10_000n, `approve ${amount} for premium ${premium}`);
 });
 
 check('a default approval still covers the fill after a cheaper re-quote', () => {
@@ -118,7 +128,7 @@ check('a re-quote that needs more than was approved asks for another approval be
   assert.equal(sent(), null);
 });
 
-check('an allowance below the amount plus slack asks for approval instead of risking a refused fill', () => {
+check('an allowance below the default approval asks for approval instead of risking a refused fill', () => {
   const r = runCli([...noCfg, '--dry-run', '-o', 'json', 'fill', ...PUT, '--collateral', '5'], { env: { ODETTE_PRIVATE_KEY: key, STUB_TAKER_ALLOWANCE: '5000000' } });
   assert.notEqual(JSON.parse(r.stdout).approve, null);
 });

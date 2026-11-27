@@ -28,6 +28,7 @@
 import type { Command } from 'commander';
 import { Interface, MaxUint256 } from 'ethers';
 import {
+  BUDGET_TOLERANCE_USDC,
   ODETTE_REFERRER,
   OPTION_BOOK_ABI,
   maxContracts,
@@ -57,7 +58,7 @@ import {
   isEligibleBookOrder,
   type BookEligibilityPolicy,
 } from '../bookEligibility.js';
-import { BOOK_PRICE_SCALE, bookPremiumCeiling, withActualBookPremium } from '../bookPreview.js';
+import { bookPremiumCeiling, withActualBookPremium } from '../bookPreview.js';
 import { findSameInstrument } from '../bookOrderIdentity.js';
 import { findMatchingOrders, resolvePriceFeed } from '../bookMatch.js';
 import {
@@ -1062,7 +1063,7 @@ function registerWrites(grp: Command): void {
     .option('--collateral <n>', `${COLLATERAL_HELP} Omit to fill the maximum available.`)
     .option(
       '--approve-amount <max|n>',
-      'approval amount when allowance is insufficient: "exact", "max" (unlimited, MaxUint256), or a decimal USDC amount. Default: the --collateral budget, or the exact premium for a max fill.'
+      'approval amount when allowance is insufficient: "exact", "max" (unlimited, MaxUint256), or a decimal USDC amount. Default: this fill\'s premium (never above --collateral) plus 0.01 USDC.'
     )
     .action(async (_local: unknown, cmd: Command) => {
       const opts = getGlobalOpts(cmd);
@@ -1127,20 +1128,21 @@ function registerWrites(grp: Command): void {
         // slack costs 1e-6 USDC and survives either contract rounding rule.
         const required = bookPremiumCeiling(preview);
 
-        // A typed amount rounds to the nearest contract unit, as on the page, so
-        // the premium can pass the budget by under one step. A re-quote before
-        // send sizes again, so the budget needs that slack to cover the fresh premium.
+        // A re-quote before send sizes the budget again. The SDK refuses a fill
+        // above budget + BUDGET_TOLERANCE_USDC, so that bounds any fresh premium.
+        // When the fill is capped at the order's maximum, the premium is far below
+        // the budget: approve this fill plus the same margin, not the whole budget.
+        // A re-quote that needs more asks for a top-up below.
         const budgetCover =
           collateralAmount === undefined
             ? required
-            : collateralAmount +
-              (preview.step * preview.pricePerContract + BOOK_PRICE_SCALE - 1n) / BOOK_PRICE_SCALE;
+            : (collateralAmount < required ? collateralAmount : required) + BUDGET_TOLERANCE_USDC;
         const defaultCover = budgetCover > required ? budgetCover : required;
 
         // Resolve how much to approve, IF approval ends up being needed.
-        //   undefined → the --collateral budget plus one step of premium, so a
-        //               re-quote before send cannot leave the allowance short,
-        //               or the exact premium for a max fill
+        //   undefined → this fill's premium (never above the --collateral
+        //               budget) plus 0.01 USDC, so a re-quote before send
+        //               rarely needs a second approval
         //   "exact"   → the exact premium
         //   "max"     → MaxUint256
         //   numeric   → toBigInt(value, decimals); below the premium is refused
